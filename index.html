@@ -43,9 +43,6 @@
                 </div>
             </div>
 
-            <div class="hero-visual">
-                <img src="https://images.unsplash.com/photo-1528701800489-20f69c59b78b?auto=format&fit=crop&w=1200&q=80" alt="Superstar sneaker showcase">
-            </div>
         </section>
 
         <section id="deals" class="deals">
@@ -53,42 +50,48 @@
                 <span class="section-label">DEALS</span>
             </div>
 
-            <div class="deals-grid">
-                <article class="deal-card">
-                    <img src="https://images.unsplash.com/photo-1519741497080-2b34c2ce26f6?auto=format&fit=crop&w=900&q=80" alt="Nike deal">
-                    <div class="deal-overlay"></div>
-                    <div class="deal-meta">
-                        <span class="brand">NIKE</span>
-                        <p class="deal-copy">Just do it</p>
-                    </div>
-                </article>
+            <div class="carousel-wrapper">
+                <button class="carousel-btn carousel-prev" aria-label="Previous deals">‹</button>
+                
+                <div class="deals-carousel">
+                    <article class="deal-card">
+                        <img src="https://images.unsplash.com/photo-1519741497080-2b34c2ce26f6?auto=format&fit=crop&w=900&q=80" alt="Nike deal">
+                        <div class="deal-overlay"></div>
+                        <div class="deal-meta">
+                            <span class="brand">NIKE</span>
+                            <p class="deal-copy">Just do it</p>
+                        </div>
+                    </article>
 
-                <article class="deal-card">
-                    <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80" alt="Adidas deal">
-                    <div class="deal-overlay"></div>
-                    <div class="deal-meta">
-                        <span class="brand">adi</span>
-                        <p class="deal-copy">10% off</p>
-                    </div>
-                </article>
+                    <article class="deal-card">
+                        <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80" alt="Adidas deal">
+                        <div class="deal-overlay"></div>
+                        <div class="deal-meta">
+                            <span class="brand">adi</span>
+                            <p class="deal-copy">10% off</p>
+                        </div>
+                    </article>
 
-                <article class="deal-card">
-                    <img src="https://images.unsplash.com/photo-1528701800489-20f69c59b78b?auto=format&fit=crop&w=900&q=80" alt="Retro jersey deal">
-                    <div class="deal-overlay"></div>
-                    <div class="deal-meta">
-                        <span class="brand">retro</span>
-                        <p class="deal-copy">jersey</p>
-                    </div>
-                </article>
+                    <article class="deal-card">
+                        <img src="https://images.unsplash.com/photo-1528701800489-20f69c59b78b?auto=format&fit=crop&w=900&q=80" alt="Retro jersey deal">
+                        <div class="deal-overlay"></div>
+                        <div class="deal-meta">
+                            <span class="brand">retro</span>
+                            <p class="deal-copy">jersey</p>
+                        </div>
+                    </article>
 
-                <article class="deal-card">
-                    <img src="https://images.unsplash.com/photo-1519861534157-8eb2b20c4a11?auto=format&fit=crop&w=900&q=80" alt="Vans deal">
-                    <div class="deal-overlay"></div>
-                    <div class="deal-meta">
-                        <span class="brand">VANS</span>
-                        <p class="deal-copy">OFF THE WALL</p>
-                    </div>
-                </article>
+                    <article class="deal-card">
+                        <img src="https://images.unsplash.com/photo-1519861534157-8eb2b20c4a11?auto=format&fit=crop&w=900&q=80" alt="Vans deal">
+                        <div class="deal-overlay"></div>
+                        <div class="deal-meta">
+                            <span class="brand">VANS</span>
+                            <p class="deal-copy">OFF THE WALL</p>
+                        </div>
+                    </article>
+                </div>
+                
+                <button class="carousel-btn carousel-next" aria-label="Next deals">›</button>
             </div>
         </section>
 
@@ -262,5 +265,43 @@
             </div>
         </footer>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const carousel = document.querySelector('.deals-carousel');
+            const prevBtn = document.querySelector('.carousel-prev');
+            const nextBtn = document.querySelector('.carousel-next');
+
+            if (!carousel || !prevBtn || !nextBtn) return;
+
+            const cardWidth = 280;
+            const gap = 24;
+            const slideDistance = cardWidth + gap;
+
+            prevBtn.addEventListener('click', function() {
+                carousel.scrollBy({
+                    left: -slideDistance,
+                    behavior: 'smooth'
+                });
+            });
+
+            nextBtn.addEventListener('click', function() {
+                carousel.scrollBy({
+                    left: slideDistance,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Optional: Disable prev button at start, disable next button at end
+            function updateButtonStates() {
+                prevBtn.disabled = carousel.scrollLeft <= 0;
+                const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+                nextBtn.disabled = carousel.scrollLeft >= maxScroll - 5;
+            }
+
+            carousel.addEventListener('scroll', updateButtonStates);
+            updateButtonStates();
+        });
+    </script>
 </body>
 </html>
