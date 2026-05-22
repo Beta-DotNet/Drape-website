@@ -50,8 +50,11 @@ header {
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 999px;
-    padding: 12px 18px;
+    width: 100%; /* Spans the full width of the box it sits inside */
+    max-width: 500px; /* Optional constraint: won't look too wide on desktop screens */
+    padding: 8px 16px;
 }
+
 
 .search-bar input {
     flex: 1;
@@ -59,7 +62,10 @@ header {
     border: none;
     color: #fff;
     outline: none;
+    font-weight: 500;
     font-size: 14px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    letter-spacing: 0.09em;
 }
 
 .search-bar input::placeholder {
@@ -86,18 +92,21 @@ header {
 }
 
 nav {
+    
     display: flex;
-    gap: 28px;
+    align-items: center;       
+    justify-content: center;   
+    position: absolute;
+    left: 50%;
+    gap: 70px;   
 }
 
 nav a {
     color: white;
     text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    font-size: 21px;
+    font-weight: 550;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 nav a:hover {
@@ -105,26 +114,68 @@ nav a:hover {
 }
 
 .dropdown-arrow {
-    font-size: 12px;
+    fill: white;
+}
+.custom-line {
+    border: none;               /* Removes the default gray border */
+    height: 2px;                /* Sets the thickness of the line */
+    background-color: #36383a;  /* Sets the line color (e.g., blue) */
+    width: 20%;                 /* Makes the line take up half the screen */
+    margin: 30px 25px;          /* Centers the line and adds space above/below */
 }
 
 .icons {
     display: flex;
-    gap: 18px;
+    gap: 16px;
     align-items: center;
+    position: absolute;
+    left: 81%;
 }
 
 .icons a {
     color: white;
     text-decoration: none;
-    font-size: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 19px;
+    font-weight: 500;
+    font-family: chillax, sans-serif;
 }
 
-.icons a:hover {
-    opacity: 0.9;
+.icons button {
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 19px;
+    background: #f8fafc;
+    font-weight: 1000;
+    font-family: chillax, sans-serif;
+    min-width: 120px;
+    min-height: 48px;
+}
+
+.icons button:hover {
+    background: #e2e8f0;
+    transition-behavior: smooth;
+    transform: translateY(-2px);
+    min-height: 50px;
+    min-width: 122px;
+    transition: transform 0.25s ease;
+}
+
+.icons img {
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    justify-content: center;
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+
+.icons img:hover {
+    cursor: pointer;
+    opacity: 0.85;
+    transform: translateY(-2px);
+    transition: transform 0.25s ease;
 }
 
 main {
@@ -137,8 +188,10 @@ main {
     gap: 40px;
     align-items: center;
     padding: 60px 40px 9%;
-    background-image: url('https://i.pinimg.com/1200x/71/df/87/71df87f9537379b2b7981c8548c23e7d.jpg');
+    background-image: url('https://i.pinimg.com/1200x/f2/1b/83/f21b837351a3b9ef5a829d17e5039bea.jpg');
     background-size: cover;
+    background-position: 5% 25%;
+    background-repeat: no-repeat;
     color: #ffffff;
 }
 
@@ -216,7 +269,7 @@ main {
     z-index: 10;
     left: 63%;
     font-weight: 1000;
-    font-size: 90px;
+    font-size: clamp(3.4rem, 5vw, 5.5rem);
     font-family: 'Chillax', sans-serif;
     
     
@@ -243,7 +296,15 @@ main {
     margin-bottom: 24px;
 }
 
-.section-label,
+.section-label{
+    font-size: 40px;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    color: #000000; 
+    font-family: chillax, sans-serif;   
+    font-weight: 600; 
+
+}
 .section-heading h2 {
     text-transform: uppercase;
     letter-spacing: 0.35em;
