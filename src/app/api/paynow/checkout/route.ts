@@ -29,9 +29,39 @@ export async function POST(req: Request) {
     // Calculate total amount
     const totalAmount = items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
     
+    // Create the order in Supabase (falls back to random INV number if database isn't ready)
+    let orderId = `INV-${Math.floor(Math.random() * 1000000)}`;
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .insert([
+          {
+            status: "Pending",
+            total_amount: totalAmount,
+            shipping_address: { email, phone, address: "Harare, Zimbabwe" },
+            items: items.map((item: any) => ({
+              product_id: item.product_id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              size: item.size
+            }))
+          }
+        ])
+        .select("id")
+        .single();
+
+      if (!error && data) {
+        orderId = data.id;
+      } else {
+        console.warn("Supabase order insert failed, using fallback ID:", error?.message);
+      }
+    } catch (e: any) {
+      console.warn("Supabase connection skipped/failed, using fallback ID:", e.message);
+    }
+    
     // Create a new payment
-    const invoiceNumber = `INV-${Math.floor(Math.random() * 1000000)}`;
-    const payment = paynow.createPayment(invoiceNumber, email);
+    const payment = paynow.createPayment(orderId, email);
 
     // Add items to payment
     items.forEach((item: any) => {
@@ -43,9 +73,9 @@ export async function POST(req: Request) {
     
     // For development/mocking if integration id isn't set yet:
     if (integrationId === "12345" || integrationId === "") {
-      // Mock mode since keys aren't real yet.
       return NextResponse.json({ 
         success: true, 
+        orderId,
         message: "Simulated checkout (Add real keys to .env to use live Paynow)",
         redirectUrl: "http://localhost:3000/shop?payment=success" 
       });
@@ -56,8 +86,7 @@ export async function POST(req: Request) {
       const response = await paynow.sendMobile(payment, phone, "ecocash");
       if (response.success) {
         pollUrl = response.pollUrl;
-        // The user will receive a prompt on their phone.
-        return NextResponse.json({ success: true, pollUrl, message: "EcoCash prompt sent to phone" });
+        return NextResponse.json({ success: true, orderId, pollUrl, message: "EcoCash prompt sent to phone" });
       } else {
         return NextResponse.json({ error: response.error }, { status: 400 });
       }
@@ -66,7 +95,7 @@ export async function POST(req: Request) {
       const response = await paynow.send(payment);
       if (response.success) {
         redirectUrl = response.redirectUrl;
-        return NextResponse.json({ success: true, redirectUrl });
+        return NextResponse.json({ success: true, orderId, redirectUrl });
       } else {
         return NextResponse.json({ error: response.error }, { status: 400 });
       }

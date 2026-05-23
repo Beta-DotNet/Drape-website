@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import CartDrawer from "./CartDrawer";
@@ -14,7 +15,7 @@ export default function Header() {
   
   const [search, setSearch] = useState("");
   const [cartCount, setCartCount] = useState(0); 
-  const [wishlistCount, setWishlistCount] = useState(0);
+  const [wishlistCount] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   
   // Suggestions dropdown state
@@ -27,7 +28,7 @@ export default function Header() {
       try {
         const stored = localStorage.getItem("drape_cart") || "[]";
         const cart = JSON.parse(stored);
-        const count = cart.reduce((acc: number, item: any) => acc + item.quantity, 0);
+        const count = cart.reduce((acc: number, item: { quantity: number }) => acc + item.quantity, 0);
         setCartCount(count);
       } catch (err) {
         console.error("Failed to parse cart:", err);
@@ -42,13 +43,12 @@ export default function Header() {
   // Debounced Auto-suggestions effect
   useEffect(() => {
     const trimmed = search.trim();
-    if (trimmed.length < 2) {
-      setSuggestions(null);
-      setShowSuggestions(false);
-      return;
-    }
-
     const timer = setTimeout(async () => {
+      if (trimmed.length < 2) {
+        setSuggestions(null);
+        setShowSuggestions(false);
+        return;
+      }
       try {
         const res = await getSearchSuggestions(trimmed);
         setSuggestions(res);
@@ -95,7 +95,7 @@ export default function Header() {
     <header className="site-header" id="site-header">
       <div className="header-logo" style={{ cursor: "pointer" }}>
         <Link href="/">
-          <img src="/images/Drape Logo.svg" alt="drape" />
+          <Image src="/images/Drape Logo.svg" alt="drape" width={120} height={40} />
         </Link>
       </div>
 
@@ -193,7 +193,7 @@ export default function Header() {
                       onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
                       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                     >
-                      <img src={prod.images[0]} alt={prod.name} style={{ width: "32px", height: "36px", objectFit: "cover", borderRadius: "4px" }} />
+                      <Image src={prod.images[0]} alt={prod.name} width={32} height={36} style={{ objectFit: "cover", borderRadius: "4px" }} unoptimized />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: "13px", fontWeight: 600, color: "#fff", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{prod.name}</div>
                         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)" }}>{prod.brand}</div>
@@ -227,16 +227,16 @@ export default function Header() {
 
       <div className="header-actions">
         <div className="icon-action" onClick={() => router.push("/profile")} title="Profile">
-          <img src="/images/mdi--account.svg" alt="Profile" />
+          <Image src="/images/mdi--account.svg" alt="Profile" width={24} height={24} />
           <span className="icon-label">Profile</span>
         </div>
         <div className="icon-action" id="wishlist-btn" title="Wishlist">
-          <img src="/images/icon-park-outline--like.svg" alt="Wishlist" />
+          <Image src="/images/icon-park-outline--like.svg" alt="Wishlist" width={24} height={24} />
           <span className="icon-label">Saved</span>
           {wishlistCount > 0 && <span className="badge" id="wishlist-badge">{wishlistCount}</span>}
         </div>
         <div className="icon-action" id="cart-trigger-btn" title="Cart" onClick={() => setIsCartOpen(true)}>
-          <img src="/images/mdi--cart-outline.svg" alt="Cart" />
+          <Image src="/images/mdi--cart-outline.svg" alt="Cart" width={24} height={24} />
           <span className="icon-label">Cart</span>
           {cartCount > 0 && <span className="badge" id="cart-badge">{cartCount}</span>}
         </div>

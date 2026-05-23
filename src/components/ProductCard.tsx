@@ -3,6 +3,7 @@
 import { Product } from "@/lib/data";
 import { useState } from "react";
 import { useProductModal } from "./ProductModalContext";
+import Image from "next/image";
 
 export default function ProductCard({ product }: { product: Product }) {
   const [liked, setLiked] = useState(false);
@@ -24,7 +25,7 @@ export default function ProductCard({ product }: { product: Product }) {
       const cart = JSON.parse(stored);
       
       // Look for same product
-      const itemIndex = cart.findIndex((item: any) => item.product_id === product.id);
+      const itemIndex = cart.findIndex((item: { product_id: number; quantity: number }) => item.product_id === product.id);
       
       if (itemIndex > -1) {
         cart[itemIndex].quantity += 1;
@@ -58,7 +59,7 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <article className="product-card" onClick={handleCardClick}>
       <div className="product-img">
-        <img src={product.images[0]} alt={product.name} loading="lazy" />
+        <Image src={product.images[0]} alt={product.name} width={300} height={360} unoptimized style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <div className="product-hover-actions">
           <button
             className={`ph-btn ${liked ? "liked" : ""}`}

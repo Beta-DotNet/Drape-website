@@ -118,9 +118,9 @@ CREATE POLICY "Admins can modify products" ON public.products FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
 );
 
--- Orders: Users can read their own orders, admins can read all
-CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- Orders: Users can read their own orders, admins can read all, guests can read/insert their own guest orders
+CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT USING (user_id IS NULL OR auth.uid() = user_id);
+CREATE POLICY "Users can insert own orders" ON public.orders FOR INSERT WITH CHECK (user_id IS NULL OR auth.uid() = user_id);
 CREATE POLICY "Admins can view all orders" ON public.orders FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
 );
@@ -143,3 +143,37 @@ CREATE POLICY "Admins can view all deliveries" ON public.deliveries FOR ALL USIN
 
 -- Dictionary: Anyone can read
 CREATE POLICY "Anyone can view dictionary" ON public.shona_dictionary FOR SELECT USING (true);
+
+-- ==========================================
+-- 7. MESSAGES (Buyer-Seller Chat)
+-- ==========================================
+CREATE TABLE public.messages (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  sender_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  receiver_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  order_id uuid REFERENCES public.orders(id) ON DELETE SET NULL,
+  product_id bigint REFERENCES public.products(id) ON DELETE SET NULL,
+  content text NOT NULL,
+  image_url text,
+  status text DEFAULT 'sent', -- 'sent', 'delivered', 'read'
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own messages" ON public.messages FOR SELECT USING (
+  auth.uid() = sender_id OR auth.uid() = receiver_id OR EXISTS (
+    SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
+  )
+);
+
+CREATE POLICY "Users can send messages" ON public.messages FOR INSERT WITH CHECK (
+  auth.uid() = sender_id
+);
+
+-- ==========================================
+-- ENABLE REALTIME REPLICATION FOR ACTIVE TABLES
+-- ==========================================
+alter publication supabase_realtime add table public.deliveries;
+alter publication supabase_realtime add table public.messages;
+alter publication supabase_realtime add table public.orders;

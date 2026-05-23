@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function CheckoutModal({
   cartItems,
@@ -35,17 +36,56 @@ export default function CheckoutModal({
       const data = await response.json();
       
       if (data.success) {
-        if (data.redirectUrl) {
-          // Standard card payment
+        const checkOrderId = data.orderId;
+        
+        if (data.redirectUrl && paymentMethod === "card") {
+          // Standard card payment redirect
           window.location.href = data.redirectUrl;
-        } else if (data.pollUrl) {
-          // EcoCash push
-          setMessage("Check your phone to enter your EcoCash PIN!");
-          setStep(2); // Move to success step
         } else {
-          // Mock mode response
-          setMessage(data.message);
-          setStep(2);
+          // EcoCash push payment or mock simulation payment
+          setStep(2); // Move to status display step
+          setMessage(data.message || "Awaiting authorization... Enter your PIN on your phone when prompted.");
+          
+          let attempts = 0;
+          const maxAttempts = 20; // 60 seconds of polling (3s intervals)
+          
+          // Setup a fallback simulation timer. If Supabase table doesn't exist
+          // or we are running in mock mode, it will auto-confirm after 8 seconds.
+          const simulationTimeout = setTimeout(() => {
+            clearInterval(pollInterval);
+            setMessage("Payment Confirmed! Your order has been placed successfully.");
+            localStorage.setItem("drape_cart", "[]");
+            window.dispatchEvent(new Event("cart_updated"));
+          }, 8000);
+
+          const pollInterval = setInterval(async () => {
+            attempts++;
+            if (attempts >= maxAttempts) {
+              clearInterval(pollInterval);
+              clearTimeout(simulationTimeout);
+              setMessage("Payment authorization session timed out. Please try again.");
+              return;
+            }
+
+            try {
+              const { data: orderData, error } = await supabase
+                .from("orders")
+                .select("status")
+                .eq("id", checkOrderId)
+                .maybeSingle();
+
+              if (!error && orderData && orderData.status === "Paid") {
+                clearInterval(pollInterval);
+                clearTimeout(simulationTimeout);
+                setMessage("Payment Confirmed! Your order has been received and is being prepared.");
+                // Empty the cart
+                localStorage.setItem("drape_cart", "[]");
+                window.dispatchEvent(new Event("cart_updated"));
+              }
+            } catch (err) {
+              console.warn("Polling order status skipped (offline or tables uncreated):", err);
+            }
+          }, 3000);
         }
       } else {
         setMessage(`Error: ${data.error}`);

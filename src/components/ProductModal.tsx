@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { Product, DEFAULT_PRODUCTS } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { useProductModal } from "./ProductModalContext";
@@ -21,13 +22,20 @@ interface ReviewItem {
   email?: string;
 }
 
+interface SizeProfile {
+  hasScanned?: boolean;
+  measurements?: Record<string, number>;
+  shoeSize?: string;
+  brandSizes?: Record<string, Record<string, string>>;
+}
+
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   const { openProductModal } = useProductModal();
   const [selectedImage, setSelectedImage] = useState(product.images[0]);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [accordions, setAccordions] = useState({ details: true, fabric: false });
-  const [sizeProfile, setSizeProfile] = useState<any>(null);
+  const [sizeProfile, setSizeProfile] = useState<SizeProfile | null>(null);
   const [recommendedSize, setRecommendedSize] = useState<string>("");
   
   // Reviews state
@@ -43,60 +51,34 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync state when product changes
-  useEffect(() => {
-    setSelectedImage(product.images[0]);
-    setSelectedSize(product.sizes[0] || "");
-    setSelectedColor(product.colors[0] || "");
+  // Pre-populated review database for premium aesthetic content
+  const getMockReviewsForProduct = useCallback((id: number): ReviewItem[] => {
+    const dates = ["2026-05-18T14:22:10Z", "2026-05-02T09:15:30Z", "2026-04-20T18:40:00Z"];
     
-    // Load Size Profile from localStorage
-    try {
-      const stored = localStorage.getItem("drape_size_profile");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setSizeProfile(parsed);
-        determineRecommendedSize(parsed, product);
-      } else {
-        setSizeProfile(null);
-        setRecommendedSize("");
-      }
-    } catch (e) {
-      console.error("Error loading size profile:", e);
+    switch (id) {
+      case 1: // Jordan
+        return [
+          { id: "mock-1-1", rating: 5, comment: "Absolutely gorgeous in hand! Premium leather texture is amazing and the size recommendation L was spot on.", images: ["https://i.pinimg.com/736x/80/33/a4/8033a49a1af88a4e4b3e22abd2795173.jpg"], created_at: dates[0], first_name: "Tinashe", last_name: "Moyo" },
+          { id: "mock-1-2", rating: 4, comment: "Super comfy for daily street style. Only issue is crease-sensitivity, but that is expected. 10/10 drape sizing.", images: [], created_at: dates[1], first_name: "Austin", last_name: "Chauke" }
+        ];
+      case 2: // Loafers
+        return [
+          { id: "mock-2-1", rating: 5, comment: "Elegant penny loafers. The brown suede looks extremely rich. Fits perfectly with my size profile recommendations.", images: [], created_at: dates[0], first_name: "Ruvimbo", last_name: "Musiyiwa" },
+          { id: "mock-2-2", rating: 5, comment: "Beautiful quality suede. Perfect for smart-casual. Will definitely buy in black as well.", images: [], created_at: dates[2], first_name: "Farai", last_name: "Gumbo" }
+        ];
+      case 3: // Cargo Pants
+        return [
+          { id: "mock-3-1", rating: 4, comment: "Great heavy twill fabric. Extremely durable. The fit is beautifully baggy and fits exactly as styled. Fast shipping too!", images: ["https://i.pinimg.com/736x/58/3c/12/583c12cddb3518aa467ce9ab872c52a8.jpg"], created_at: dates[0], first_name: "Kuda", last_name: "Sithole" }
+        ];
+      default:
+        return [
+          { id: `mock-def-1`, rating: 5, comment: "Incredible quality for the price! Exceeded my expectations. The fabric feels premium and soft.", images: [], created_at: dates[1], first_name: "Nyasha", last_name: "Zhou" }
+        ];
     }
-
-    // Load / Fetch Reviews
-    fetchReviews();
-  }, [product]);
-
-  // Determine recommended size based on profile and product category
-  const determineRecommendedSize = (profile: any, prod: Product) => {
-    if (!profile) return;
-    
-    const cat = prod.category.toLowerCase();
-    const brand = prod.brand.toLowerCase();
-    
-    if (cat === "shoes") {
-      // Default shoe size
-      const sz = profile.shoeSize || profile.brandSizes?.Nike?.Shoes || "9";
-      setRecommendedSize(sz);
-    } else if (cat === "bottoms") {
-      const sz = profile.brandSizes?.[prod.brand]?.Bottoms || profile.brandSizes?.Nike?.Bottoms || "M";
-      setRecommendedSize(sz);
-    } else {
-      // Tops / accessories / default
-      const sz = profile.brandSizes?.[prod.brand]?.Tops || profile.brandSizes?.Nike?.Tops || "L";
-      setRecommendedSize(sz);
-    }
-  };
-
-  const getRecommendedSizeConfidence = () => {
-    if (!sizeProfile) return 0;
-    // Mock high-confidence matching logic
-    return 92 + (product.id % 7); 
-  };
+  }, []);
 
   // Fetch reviews from Supabase + load rich mock fallbacks
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       // Try querying Supabase
       const { data, error } = await supabase
@@ -115,7 +97,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       let parsedReviews: ReviewItem[] = [];
 
       if (!error && data && data.length > 0) {
-        parsedReviews = data.map((r: any) => ({
+        parsedReviews = data.map((r: { id: string; rating: number; comment: string; images: string[] | null; created_at: string; user_id: string }) => ({
           id: r.id,
           rating: r.rating,
           comment: r.comment,
@@ -146,33 +128,60 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       setAverageRating(product.rating || 4.2);
       setReviewsCount(mocks.length);
     }
+  }, [product.id, product.rating, getMockReviewsForProduct]);
+
+  // Determine recommended size based on profile and product category
+  const determineRecommendedSize = useCallback((profile: SizeProfile, prod: Product) => {
+    if (!profile) return;
+    
+    const cat = prod.category.toLowerCase();
+    
+    if (cat === "shoes") {
+      // Default shoe size
+      const sz = profile.shoeSize || profile.brandSizes?.Nike?.Shoes || "9";
+      setRecommendedSize(sz);
+    } else if (cat === "bottoms") {
+      const sz = profile.brandSizes?.[prod.brand]?.Bottoms || profile.brandSizes?.Nike?.Bottoms || "M";
+      setRecommendedSize(sz);
+    } else {
+      // Tops / accessories / default
+      const sz = profile.brandSizes?.[prod.brand]?.Tops || profile.brandSizes?.Nike?.Tops || "L";
+      setRecommendedSize(sz);
+    }
+  }, []);
+
+  const getRecommendedSizeConfidence = () => {
+    if (!sizeProfile) return 0;
+    // Mock high-confidence matching logic
+    return 92 + (product.id % 7); 
   };
 
-  // Pre-populated review database for premium aesthetic content
-  const getMockReviewsForProduct = (id: number): ReviewItem[] => {
-    const dates = ["2026-05-18T14:22:10Z", "2026-05-02T09:15:30Z", "2026-04-20T18:40:00Z"];
+  // Sync state when product changes
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- Resetting derived state when product prop changes */
+    setSelectedImage(product.images[0]);
+    setSelectedSize(product.sizes[0] || "");
+    setSelectedColor(product.colors[0] || "");
     
-    switch (id) {
-      case 1: // Jordan
-        return [
-          { id: "mock-1-1", rating: 5, comment: "Absolutely gorgeous in hand! Premium leather texture is amazing and the size recommendation L was spot on.", images: ["https://i.pinimg.com/736x/80/33/a4/8033a49a1af88a4e4b3e22abd2795173.jpg"], created_at: dates[0], first_name: "Tinashe", last_name: "Moyo" },
-          { id: "mock-1-2", rating: 4, comment: "Super comfy for daily street style. Only issue is crease-sensitivity, but that is expected. 10/10 drape sizing.", images: [], created_at: dates[1], first_name: "Austin", last_name: "Chauke" }
-        ];
-      case 2: // Loafers
-        return [
-          { id: "mock-2-1", rating: 5, comment: "Elegant penny loafers. The brown suede looks extremely rich. Fits perfectly with my size profile recommendations.", images: [], created_at: dates[0], first_name: "Ruvimbo", last_name: "Musiyiwa" },
-          { id: "mock-2-2", rating: 5, comment: "Beautiful quality suede. Perfect for smart-casual. Will definitely buy in black as well.", images: [], created_at: dates[2], first_name: "Farai", last_name: "Gumbo" }
-        ];
-      case 3: // Cargo Pants
-        return [
-          { id: "mock-3-1", rating: 4, comment: "Great heavy twill fabric. Extremely durable. The fit is beautifully baggy and fits exactly as styled. Fast shipping too!", images: ["https://i.pinimg.com/736x/58/3c/12/583c12cddb3518aa467ce9ab872c52a8.jpg"], created_at: dates[0], first_name: "Kuda", last_name: "Sithole" }
-        ];
-      default:
-        return [
-          { id: `mock-def-1`, rating: 5, comment: "Incredible quality for the price! Exceeded my expectations. The fabric feels premium and soft.", images: [], created_at: dates[1], first_name: "Nyasha", last_name: "Zhou" }
-        ];
+    // Load Size Profile from localStorage
+    try {
+      const stored = localStorage.getItem("drape_size_profile");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setSizeProfile(parsed);
+        determineRecommendedSize(parsed, product);
+      } else {
+        setSizeProfile(null);
+        setRecommendedSize("");
+      }
+    } catch (e) {
+      console.error("Error loading size profile:", e);
     }
-  };
+    /* eslint-enable react-hooks/set-state-in-effect */
+
+    // Load / Fetch Reviews
+    fetchReviews();
+  }, [product, determineRecommendedSize, fetchReviews]);
 
   // Convert review image uploads to base64
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,7 +215,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       
       // Try inserting to Supabase if connected
       // If we don't have authentication, we'll try to insert or fallback gracefully
-      const { error } = await supabase.from("reviews").insert([
+      await supabase.from("reviews").insert([
         {
           id: newReviewId,
           product_id: product.id,
@@ -256,7 +265,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       const stored = localStorage.getItem("drape_cart") || "[]";
       const cart = JSON.parse(stored);
       
-      const itemIndex = cart.findIndex((item: any) => item.product_id === product.id && item.size === selectedSize);
+      const itemIndex = cart.findIndex((item: { product_id: number; size: string; quantity: number }) => item.product_id === product.id && item.size === selectedSize);
       
       if (itemIndex > -1) {
         cart[itemIndex].quantity += 1;
@@ -331,7 +340,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         
         {/* Images Columns */}
         <div className="pm-images">
-          <img className="pm-main-img" id="pm-main-img" src={selectedImage} alt={product.name} />
+          <Image className="pm-main-img" id="pm-main-img" src={selectedImage} alt={product.name} width={500} height={600} unoptimized style={{ width: '100%', height: 'auto' }} />
           <div className="pm-thumbs" id="pm-thumbs">
             {product.images.map((img, idx) => (
               <div 
@@ -339,7 +348,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 className={`pm-thumb ${selectedImage === img ? "active" : ""}`}
                 onClick={() => setSelectedImage(img)}
               >
-                <img src={img} alt={`thumbnail ${idx}`} />
+                <Image src={img} alt={`thumbnail ${idx}`} width={60} height={70} unoptimized />
               </div>
             ))}
           </div>
@@ -406,9 +415,19 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           </div>
 
           {/* Add to Bag Actions */}
-          <div className="pm-actions" style={{ marginTop: "16px" }}>
-            <button className="btn btn-navy btn-lg pm-add-cart" onClick={handleAddToCart}>
+          <div className="pm-actions" style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <button className="btn btn-navy btn-lg pm-add-cart" onClick={handleAddToCart} style={{ width: "100%" }}>
               Add to Bag — ${(product.price).toFixed(2)}
+            </button>
+            <button 
+              className="btn btn-outline btn-lg" 
+              onClick={() => {
+                onClose();
+                window.location.href = `/chat?product=${product.id}`;
+              }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%" }}
+            >
+              💬 Chat with Seller
             </button>
           </div>
 
@@ -451,7 +470,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                     className="look-item"
                     onClick={() => openProductModal(look)}
                   >
-                    <img src={look.images[0]} alt={look.name} />
+                    <Image src={look.images[0]} alt={look.name} width={100} height={120} unoptimized />
                     <p style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
                       {look.name}
                     </p>
@@ -623,7 +642,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                           border: "1px solid var(--border)"
                         }}
                       >
-                        <img src={imgUrl} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <Image src={imgUrl} alt="preview" width={64} height={64} unoptimized style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         <button 
                           type="button"
                           onClick={() => removeReviewImage(idx)}
@@ -699,22 +718,23 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                     {rev.images && rev.images.length > 0 && (
                       <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
                         {rev.images.map((img, i) => (
-                          <img 
+                          <Image 
                             key={i} 
                             src={img} 
                             alt="review attach" 
+                            width={72}
+                            height={72}
+                            unoptimized
                             onClick={() => window.open(img, "_blank")}
                             style={{ 
-                              width: "72px", 
-                              height: "72px", 
                               objectFit: "cover", 
                               borderRadius: "8px", 
                               cursor: "zoom-in",
                               border: "1px solid var(--border-mid)",
                               transition: "all 0.15s ease"
                             }} 
-                            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.04)"}
-                            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.transform = "scale(1.04)"}
+                            onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.transform = "scale(1)"}
                           />
                         ))}
                       </div>

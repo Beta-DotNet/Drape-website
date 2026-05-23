@@ -29,12 +29,14 @@ const CUSTOMER_LOCATION: DriverLocation = { lat: -17.8252, lng: 31.0335 };
 
 const MOCK_DRIVER_START: DriverLocation = { lat: -17.8185, lng: 31.0271 };
 
-const TRACKING_STEPS = [
-  { icon: "✅", label: "Order Confirmed",    done: true  },
-  { icon: "📦", label: "Packed & Ready",     done: true  },
-  { icon: "🛵", label: "Out for Delivery",   done: true  },
-  { icon: "🏠", label: "Delivered",          done: false },
-];
+const getStepsForStatus = (status: string) => {
+  return [
+    { icon: "✅", label: "Order Confirmed",  done: true },
+    { icon: "📦", label: "Packed & Ready",   done: status !== "Preparing" && status !== "Pending" },
+    { icon: "🛵", label: "Out for Delivery", done: status === "In Transit" || status === "Delivered" },
+    { icon: "🏠", label: "Delivered",        done: status === "Delivered" },
+  ];
+};
 
 function TrackingContent() {
   const searchParams  = useSearchParams();
@@ -44,8 +46,32 @@ function TrackingContent() {
   const [eta, setEta]                       = useState(12); // minutes
   const [connected, setConnected]           = useState(false);
   const [lastUpdate, setLastUpdate]         = useState<string>("");
+  const [isLiveTracking, setIsLiveTracking] = useState(false);
+  const [steps, setSteps]                   = useState(getStepsForStatus("Preparing"));
 
-  // Subscribe to Supabase Realtime for live driver location
+  // Fetch initial order status
+  useEffect(() => {
+    const fetchInitialStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("status")
+          .eq("id", orderId)
+          .maybeSingle();
+        if (!error && data && data.status) {
+          setSteps(getStepsForStatus(data.status));
+          if (data.status === "In Transit") {
+            setIsLiveTracking(true);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not fetch initial order status:", e);
+      }
+    };
+    fetchInitialStatus();
+  }, [orderId]);
+
+  // Subscribe to Supabase Realtime for live location & status updates
   useEffect(() => {
     const channel = supabase
       .channel(`delivery:${orderId}`)
@@ -56,7 +82,21 @@ function TrackingContent() {
           const { lat, lng, eta: newEta } = payload.payload;
           setDriverLocation({ lat, lng, updatedAt: new Date().toISOString() });
           setEta(newEta);
+          setIsLiveTracking(true);
           setLastUpdate(new Date().toLocaleTimeString());
+        }
+      )
+      .on(
+        "broadcast",
+        { event: "status_changed" },
+        (payload: { payload: { status: string } }) => {
+          const newStatus = payload.payload.status;
+          setSteps(getStepsForStatus(newStatus));
+          if (newStatus === "In Transit") {
+            setIsLiveTracking(true);
+          } else {
+            setIsLiveTracking(false);
+          }
         }
       )
       .subscribe((status) => {
@@ -68,9 +108,11 @@ function TrackingContent() {
     };
   }, [orderId]);
 
-  // Simulate driver moving toward customer every 8 seconds (demo only)
+  // Simulate driver moving toward customer as a fallback if not live-tracking
   useEffect(() => {
     const interval = setInterval(() => {
+      if (isLiveTracking) return;
+      
       setDriverLocation((prev) => {
         if (!prev) return MOCK_DRIVER_START;
         const targetLat = CUSTOMER_LOCATION.lat;
@@ -84,7 +126,7 @@ function TrackingContent() {
     }, 8000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isLiveTracking]);
 
   const distanceKm = driverLocation
     ? Math.sqrt(
@@ -187,10 +229,10 @@ function TrackingContent() {
               Delivery Progress
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-              {TRACKING_STEPS.map((step, i) => (
+              {steps.map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: "14px", alignItems: "flex-start", position: "relative" }}>
                   {/* Connector line */}
-                  {i < TRACKING_STEPS.length - 1 && (
+                  {i < steps.length - 1 && (
                     <div style={{
                       position: "absolute", left: "19px", top: "36px",
                       width: "2px", height: "28px",
