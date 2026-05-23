@@ -133,6 +133,34 @@ type ProductFormState = {
   description: string;
 };
 
+const CATEGORY_OPTIONS = [
+  "Shoes",
+  "Tops",
+  "Bottoms",
+  "Accessories",
+  "Outerwear",
+  "Kids",
+  "Sports",
+  "Other",
+];
+
+const GENDER_OPTIONS = ["Unisex", "Men", "Women", "Kids"];
+
+const FORM_HELP_TEXT = {
+  name: "Example: Weekend bomber",
+  brand: "Example: Drape Studio",
+  category: "Choose the collection shoppers will browse.",
+  gender: "Choose the audience for this product.",
+  price: "Use the current selling price.",
+  original_price: "Optional. Use the previous price if the item is on sale.",
+  sizeCSV: "Example: XS, S, M, L",
+  colorCSV: "Example: Black, White, Olive",
+  imagesCSV: "Example: https://cdn.example.com/image-1.jpg, https://cdn.example.com/image-2.jpg",
+  fabric: "Example: 100% organic cotton",
+  care: "Example: Machine wash cold",
+  description: "Example: Lightweight oversized fit with premium stretch.",
+};
+
 function EmptyForm(): ProductFormState {
   return {
     name: "",
@@ -585,8 +613,8 @@ function AdminProductsContent() {
             <tbody>
               {filteredProducts.map((product) => (
                 <tr key={product.id}>
-                  <td>{product.id}</td>
-                  <td>
+                  <td data-label="ID">{product.id}</td>
+                  <td data-label="Product">
                     <div className="admin-product-cell">
                       {product.images?.[0] ? (
                         <img src={product.images[0]} alt={product.name} className="admin-product-thumb" />
@@ -599,14 +627,14 @@ function AdminProductsContent() {
                       </div>
                     </div>
                   </td>
-                  <td>{product.brand}</td>
-                  <td>{product.category}</td>
-                  <td>
+                  <td data-label="Brand">{product.brand}</td>
+                  <td data-label="Category">{product.category}</td>
+                  <td data-label="Stock">
                     <span className={product.in_stock ? "admin-stock-badge admin-stock-badge-success" : "admin-stock-badge admin-stock-badge-danger"}>
                       {product.in_stock ? "In stock" : "Out of stock"}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Price">
                     <div className="admin-price-block">
                       <div className="admin-price-value">{formatCurrency(product.price)}</div>
                       {product.original_price ? (
@@ -614,7 +642,7 @@ function AdminProductsContent() {
                       ) : null}
                     </div>
                   </td>
-                  <td>
+                  <td data-label="Actions">
                     <div className="admin-action-row">
                       <button
                         type="button"
@@ -628,14 +656,7 @@ function AdminProductsContent() {
                         type="button"
                         onClick={() => deleteProduct(product.id)}
                         disabled={deletingId === product.id}
-                        style={{
-                          borderRadius: 999,
-                          border: 0,
-                          background: "rgba(248, 113, 113, 0.18)",
-                          color: "#fecaca",
-                          padding: "8px 12px",
-                          cursor: deletingId === product.id ? "wait" : "pointer",
-                        }}
+                        className="admin-delete-button"
                       >
                         {deletingId === product.id ? "Deleting…" : "Delete"}
                       </button>
@@ -658,7 +679,7 @@ function AdminProductsContent() {
                 <p className="admin-modal-copy">
                   {editOpen
                     ? "Update pricing, stock, and imagery for the selected product."
-                    : "Add a product and use comma-separated values for sizes, colors, and image URLs."}
+                    : "Add a product and use the guided fields below to save a complete listing."}
                 </p>
               </div>
               <button type="button" onClick={closeModals} className="admin-modal-close">
@@ -667,47 +688,62 @@ function AdminProductsContent() {
             </div>
 
             <div className="admin-products-form-grid">
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Name</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Name</span>
                 <input
                   value={form.name}
                   onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                   required
-                  placeholder="e.g. Weekend bomber"
-                  style={inputStyle}
+                  placeholder={FORM_HELP_TEXT.name}
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.name}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Brand</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Brand</span>
                 <input
                   value={form.brand}
                   onChange={(e) => setForm((prev) => ({ ...prev, brand: e.target.value }))}
                   required
-                  placeholder="e.g. Drape Studio"
-                  style={inputStyle}
+                  placeholder={FORM_HELP_TEXT.brand}
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.brand}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Category</span>
-                <input
+              <label className="admin-form-field">
+                <span className="admin-form-label">Category</span>
+                <select
                   value={form.category}
                   onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
                   required
-                  placeholder="e.g. Outerwear"
-                  style={inputStyle}
-                />
+                  className="admin-form-input"
+                >
+                  <option value="">Select a category</option>
+                  {CATEGORY_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <span className="admin-form-help">{FORM_HELP_TEXT.category}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Gender</span>
-                <input
+              <label className="admin-form-field">
+                <span className="admin-form-label">Gender</span>
+                <select
                   value={form.gender}
                   onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
-                  placeholder="e.g. Unisex"
-                  style={inputStyle}
-                />
+                  className="admin-form-input"
+                >
+                  {GENDER_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <span className="admin-form-help">{FORM_HELP_TEXT.gender}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Price</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Price</span>
                 <input
                   type="number"
                   min={0}
@@ -716,11 +752,13 @@ function AdminProductsContent() {
                   value={form.price}
                   onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
                   required
-                  style={inputStyle}
+                  placeholder="e.g. 149"
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.price}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Original price</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Original price</span>
                 <input
                   type="number"
                   min={0}
@@ -728,65 +766,83 @@ function AdminProductsContent() {
                   inputMode="decimal"
                   value={form.original_price}
                   onChange={(e) => setForm((prev) => ({ ...prev, original_price: e.target.value }))}
-                  style={inputStyle}
+                  placeholder="e.g. 199"
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.original_price}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Sizes</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Sizes</span>
                 <input
                   value={form.sizeCSV}
                   onChange={(e) => setForm((prev) => ({ ...prev, sizeCSV: e.target.value }))}
-                  style={inputStyle}
+                  placeholder={FORM_HELP_TEXT.sizeCSV}
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.sizeCSV}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Colors</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Colors</span>
                 <input
                   value={form.colorCSV}
                   onChange={(e) => setForm((prev) => ({ ...prev, colorCSV: e.target.value }))}
-                  style={inputStyle}
+                  placeholder={FORM_HELP_TEXT.colorCSV}
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.colorCSV}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Images</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Images</span>
                 <input
                   value={form.imagesCSV}
                   onChange={(e) => setForm((prev) => ({ ...prev, imagesCSV: e.target.value }))}
-                  style={inputStyle}
+                  placeholder={FORM_HELP_TEXT.imagesCSV}
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.imagesCSV}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Fabric</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Fabric</span>
                 <input
                   value={form.fabric}
                   onChange={(e) => setForm((prev) => ({ ...prev, fabric: e.target.value }))}
-                  style={inputStyle}
+                  placeholder={FORM_HELP_TEXT.fabric}
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.fabric}</span>
               </label>
-              <label style={{ display: "grid", gap: 8 }}>
-                <span>Care</span>
+              <label className="admin-form-field">
+                <span className="admin-form-label">Care</span>
                 <input
                   value={form.care}
                   onChange={(e) => setForm((prev) => ({ ...prev, care: e.target.value }))}
-                  style={inputStyle}
+                  placeholder={FORM_HELP_TEXT.care}
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.care}</span>
               </label>
-              <label style={{ display: "grid", gap: 8, gridColumn: "1 / -1" }}>
-                <span>Description</span>
+              <label className="admin-form-field admin-form-field-wide">
+                <span className="admin-form-label">Description</span>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                   rows={4}
-                  style={{ ...inputStyle, resize: "vertical" }}
+                  placeholder={FORM_HELP_TEXT.description}
+                  className="admin-form-input"
                 />
+                <span className="admin-form-help">{FORM_HELP_TEXT.description}</span>
               </label>
-              <label style={{ display: "flex", alignItems: "center", gap: 10, gridColumn: "1 / -1" }}>
+              <label className="admin-form-checkbox admin-form-field-wide">
                 <input
                   type="checkbox"
                   checked={form.in_stock}
                   onChange={(e) => setForm((prev) => ({ ...prev, in_stock: e.target.checked }))}
+                  className="admin-checkbox-input"
                 />
-                <span>In stock</span>
+                <span className="admin-form-checkbox-text">
+                  <span className="admin-form-checkbox-title">In stock</span>
+                  <span className="admin-form-checkbox-copy">Keep this checked when the product is available for purchase.</span>
+                </span>
               </label>
             </div>
 
@@ -809,15 +865,6 @@ function AdminProductsContent() {
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  borderRadius: 14,
-  border: "1px solid var(--border)",
-  background: "#f8fafc",
-  color: "var(--text)",
-  padding: "12px 14px",
-};
 
 export default function AdminProductsPage() {
   return (
