@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>drape — AI-Powered Fashion Marketplace</title>
+  <meta name="description" content="Shop fashion with confidence. drape uses AI body scanning to recommend your perfect size across every brand.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header class="site-header" id="site-header">
+  <div class="header-logo" onclick="navigate('home')" style="cursor:pointer">
+    <img src="./images/Drape Logo.svg" alt="drape">
+  </div>
+
+  <div class="header-search">
+    <span class="s-icon" id="search-submit-btn">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </span>
+    <input type="text" id="search-input" placeholder="Search brands, styles…" autocomplete="off">
+    <button class="vs-trigger-btn" id="vs-trigger-btn" title="Visual search — search by photo">
+      📷
+    </button>
+  </div>
+
+  <nav class="header-nav">
+    <a href="#" onclick="navigate('home');return false" id="nav-home" class="active">Home</a>
+    <a href="#" onclick="navigate('men');return false"  id="nav-men">Men</a>
+    <a href="#" onclick="navigate('women');return false" id="nav-women">Women</a>
+    <a href="#" onclick="navigate('kids');return false"  id="nav-kids">Kids</a>
+    <a href="#" onclick="navigate('shop');return false"  id="nav-shop">All</a>
+    <a href="#" onclick="navigate('visual-search');return false" id="nav-vs">🔍 Visual</a>
+    <a href="#" onclick="navigate('admin');return false"  id="nav-admin" class="admin-link">⚙ Admin</a>
+  </nav>
+
+  <div class="header-actions">
+    <div class="icon-action" onclick="navigate('profile')" title="Profile">
+      <img src="./images/mdi--account.svg" alt="Profile">
+      <span class="icon-label">Profile</span>
+    </div>
+    <div class="icon-action" id="wishlist-btn" title="Wishlist">
+      <img src="./images/icon-park-outline--like.svg" alt="Wishlist">
+      <span class="icon-label">Saved</span>
+      <span class="badge" id="wishlist-badge" style="display:none">0</span>
+    </div>
+    <div class="icon-action" id="cart-trigger-btn" title="Cart">
+      <img src="./images/mdi--cart-outline.svg" alt="Cart">
+      <span class="icon-label">Cart</span>
+      <span class="badge" id="cart-badge" style="display:none">0</span>
+    </div>
+    <button class="btn-login" id="login-btn">Log In</button>
+  </div>
+</header>
+
+<!-- ============================================================
+     APP
+     ============================================================ -->
+<div id="app">
+
+  <!-- ── HOME VIEW ─────────────────────────────────────────── -->
+  <section id="view-home" class="view active">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-content">
+        <span class="hero-eyebrow">New arrivals</span>
+        <h1>SUPERSTAR</h1>
+        <p>Discover the freshest streetwear drops, sneakers, and essentials with up to 50% off. Shop the latest before they disappear.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" onclick="navigate('shop')">Shop Now</button>
+          <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,0.5)" onclick="openSizeWizard()">🤖 Find Your Size</button>
+        </div>
+      </div>
+      <div class="hero-discount">
+        <span class="big">50%</span>
+        <small>UP TO OFF</small>
+      </div>
+    </div>
+
+    <!-- Deals -->
+    <section class="deals-section">
+      <div class="section-heading">
+        <div class="line"></div>
+        <span class="section-label">DEALS</span>
+        <div class="line"></div>
+      </div>
+      <div class="carousel-wrap">
+        <button class="carousel-btn" id="deals-prev">&#8249;</button>
+        <div class="carousel-track" id="deals-track"></div>
+        <button class="carousel-btn" id="deals-next">&#8250;</button>
+      </div>
+    </section>
+
+    <!-- Trending -->
+    <section class="trending-section">
+      <div class="section-heading">
+        <div class="line"></div>
+        <span class="section-label">Trending</span>
+        <div class="line"></div>
+      </div>
+      <div class="products-grid" id="trending-grid"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo"><img src="./images/Drape Logo Blue.svg" alt="drape"></div>
+          <p>Africa's premier AI-powered fashion marketplace. Shop with confidence — your perfect size, every time.</p>
+          <ul class="footer-links">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Partner Boutiques</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">drape Mobile App</a></li>
+            <li><a href="#">Advertising</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Help &amp; Support</h3>
+          <ul>
+            <li><a href="#">Get Help</a></li>
+            <li><a href="#">Order Status</a></li>
+            <li><a href="#">Delivery</a></li>
+            <li><a href="#">Payment Options</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Customer Care</h3>
+          <ul>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">FAQs</a></li>
+            <li><a href="#">Orders &amp; Deliveries</a></li>
+            <li><a href="#">Returns &amp; Refunds</a></li>
+            <li><a href="#">Terms &amp; Conditions</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <div class="footer-country">
+            <div class="country-icon"><img src="./images/basil--location-outline.svg" alt=""></div>
+            <div class="country-label">Zimbabwe</div>
+          </div>
+          <div class="footer-social" style="margin-top:24px;justify-content:flex-end">
+            <a href="#"><img src="./images/mdi--instagram.svg" alt="Instagram"></a>
+            <a href="#"><img src="./images/prime--twitter.svg" alt="Twitter"></a>
+            <a href="#"><img src="./images/line-md--linkedin.svg" alt="LinkedIn"></a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 drape, Inc. All rights reserved.</p>
+        <div class="footer-legal">
+          <a href="#">Terms of Sale</a>
+          <a href="#">Privacy Settings</a>
+        </div>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ── SHOP VIEW ─────────────────────────────────────────── -->
+  <section id="view-shop" class="view">
+    <div class="shop-layout">
+      <!-- Filter Sidebar -->
+      <aside class="filter-sidebar" id="filter-sidebar">
+        <div class="filter-sidebar-title">Filters</div>
+
+        <div class="filter-section">
+          <div class="filter-title">Category</div>
+          <div class="filter-options" id="filter-category">
+            <label class="filter-option"><input type="radio" name="cat" value="all" checked onchange="applyFilters()"><label>All</label></label>
+            <label class="filter-option"><input type="radio" name="cat" value="Shoes" onchange="applyFilters()"><label>Shoes</label></label>
+            <label class="filter-option"><input type="radio" name="cat" value="Tops" onchange="applyFilters()"><label>Tops</label></label>
+            <label class="filter-option"><input type="radio" name="cat" value="Bottoms" onchange="applyFilters()"><label>Bottoms</label></label>
+            <label class="filter-option"><input type="radio" name="cat" value="Accessories" onchange="applyFilters()"><label>Accessories</label></label>
+            <label class="filter-option"><input type="radio" name="cat" value="Kids" onchange="applyFilters()"><label>Kids</label></label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">Gender</div>
+          <div class="filter-options">
+            <label class="filter-option"><input type="radio" name="gender" value="all" checked onchange="applyFilters()"><label>All</label></label>
+            <label class="filter-option"><input type="radio" name="gender" value="Men" onchange="applyFilters()"><label>Men</label></label>
+            <label class="filter-option"><input type="radio" name="gender" value="Women" onchange="applyFilters()"><label>Women</label></label>
+            <label class="filter-option"><input type="radio" name="gender" value="Kids" onchange="applyFilters()"><label>Kids</label></label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">Brand</div>
+          <div class="filter-options" id="filter-brands"></div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">Size</div>
+          <div class="size-chips" id="filter-sizes"></div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">Colour</div>
+          <div class="color-swatches" id="filter-colors"></div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">Price Range</div>
+          <div class="price-range-wrap">
+            <input type="range" id="price-max" min="0" max="500" value="500" oninput="updatePriceLabel();applyFilters()">
+            <div class="price-labels">
+              <span>$0</span>
+              <span id="price-max-label">$500</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-outline btn-block btn-sm" onclick="clearFilters()">Clear All Filters</button>
+      </aside>
+
+      <!-- Main Grid -->
+      <div class="shop-main">
+        <div class="shop-toolbar">
+          <span class="shop-count" id="shop-count">0 products</span>
+          <div class="shop-sort">
+            <label for="sort-select" style="font-size:14px;color:var(--text-soft)">Sort:</label>
+            <select class="sort-select" id="sort-select" onchange="applyFilters()">
+              <option value="relevance">Relevance</option>
+              <option value="newest">Newest</option>
+              <option value="price-asc">Price: Low → High</option>
+              <option value="price-desc">Price: High → Low</option>
+              <option value="rating">Best Rated</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-tags" id="filter-tags"></div>
+        <div class="products-grid" id="shop-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VISUAL SEARCH VIEW ────────────────────────────────── -->
+  <section id="view-visual-search" class="view">
+    <div class="vs-view">
+      <div class="vs-view-header">
+        <h2>Search by Image</h2>
+        <p>Upload a photo of any outfit or choose a style preset to find visually similar items in our catalog.</p>
+      </div>
+
+      <div class="vs-upload-zone" id="vs-upload-zone">
+        <input type="file" id="vs-file-input" accept="image/*">
+        <div class="vs-upload-icon">🖼</div>
+        <h3>Drop your photo here</h3>
+        <p>Or click to browse • JPG, PNG, WEBP supported</p>
+        <button class="btn btn-navy btn-sm" style="margin-top:16px;position:relative;z-index:1" onclick="document.getElementById('vs-file-input').click();event.stopPropagation()">Choose File</button>
+      </div>
+
+      <p class="vs-section-label">— or try a style preset —</p>
+      <div class="vs-presets" id="vs-presets"></div>
+
+      <div id="vs-results-section" style="display:none">
+        <div class="vs-results-title" id="vs-results-title">Showing matches for your style</div>
+        <div class="products-grid" id="vs-results-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROFILE VIEW ──────────────────────────────────────── -->
+  <section id="view-profile" class="view">
+    <div class="profile-view">
+      <h1>My Profile</h1>
+
+      <div class="profile-tabs">
+        <button class="ptab active" onclick="switchProfileTab('size',this)">📐 Size Profile</button>
+        <button class="ptab" onclick="switchProfileTab('orders',this)">📦 Orders</button>
+        <button class="ptab" onclick="switchProfileTab('wishlist',this)">❤ Saved</button>
+        <button class="ptab" onclick="switchProfileTab('prefs',this)">🎨 Style Prefs</button>
+      </div>
+
+      <!-- Size Profile Tab -->
+      <div class="ptab-content active" id="tab-size">
+        <div id="no-size-profile" style="text-align:center;padding:48px 0">
+          <div style="font-size:4rem;margin-bottom:16px">📏</div>
+          <h2 style="margin-bottom:8px">No size profile yet</h2>
+          <p style="color:var(--text-soft);margin-bottom:24px">Use our AI body scanner to get accurate size recommendations across all brands.</p>
+          <button class="btn btn-navy btn-lg" onclick="openSizeWizard()">🤖 Start AI Scan</button>
+        </div>
+        <div id="has-size-profile" style="display:none">
+          <div class="size-profile-card">
+            <h3>Your Body Measurements (80+ data points)</h3>
+            <div class="measurements-display" id="measurements-display"></div>
+          </div>
+          <h3 style="font-family:var(--font-h);font-size:1.2rem;margin-bottom:16px">Your Brand Sizes</h3>
+          <table class="brand-table">
+            <thead>
+              <tr><th>Brand</th><th>Top/Shirt</th><th>Bottoms</th><th>Shoes</th><th>Confidence</th></tr>
+            </thead>
+            <tbody id="brand-sizes-tbody"></tbody>
+          </table>
+          <button class="btn btn-outline btn-sm" onclick="openSizeWizard()">🔄 Re-scan</button>
+        </div>
+      </div>
+
+      <!-- Orders Tab -->
+      <div class="ptab-content" id="tab-orders">
+        <div id="orders-list"></div>
+      </div>
+
+      <!-- Wishlist Tab -->
+      <div class="ptab-content" id="tab-wishlist">
+        <div class="products-grid" id="wishlist-grid" style="grid-template-columns:repeat(3,1fr)"></div>
+        <div id="wishlist-empty" style="text-align:center;padding:48px 0;display:none">
+          <div style="font-size:3.5rem;margin-bottom:16px">❤</div>
+          <p style="color:var(--text-soft);font-size:15px">Nothing saved yet. Tap ❤ on any product.</p>
+        </div>
+      </div>
+
+      <!-- Style Prefs Tab -->
+      <div class="ptab-content" id="tab-prefs">
+        <p style="color:var(--text-mid);margin-bottom:24px;font-size:14px">Select the styles you love and we'll personalise your feed.</p>
+        <div class="style-prefs">
+          <div class="pref-card" onclick="togglePref(this,'streetwear')"><div class="pref-icon">🧢</div><div class="pref-label">Streetwear</div></div>
+          <div class="pref-card" onclick="togglePref(this,'formal')"><div class="pref-icon">👔</div><div class="pref-label">Formal</div></div>
+          <div class="pref-card" onclick="togglePref(this,'athleisure')"><div class="pref-icon">🏃</div><div class="pref-label">Athleisure</div></div>
+          <div class="pref-card" onclick="togglePref(this,'boho')"><div class="pref-icon">🌸</div><div class="pref-label">Boho</div></div>
+          <div class="pref-card" onclick="togglePref(this,'minimalist')"><div class="pref-icon">⬜</div><div class="pref-label">Minimalist</div></div>
+          <div class="pref-card" onclick="togglePref(this,'vintage')"><div class="pref-icon">🕶</div><div class="pref-label">Vintage</div></div>
+        </div>
+        <button class="btn btn-navy" style="margin-top:24px" onclick="savePrefsTap()">Save Preferences</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ADMIN VIEW ─────────────────────────────────────────── -->
+  <section id="view-admin" class="view">
+    <div class="admin-layout">
+      <!-- Admin Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="admin-sidebar-hdr">
+          <h2>⚙ Admin Panel</h2>
+          <p>drape Dashboard</p>
+        </div>
+        <div class="admin-nav-item active" onclick="switchAdminPage('dashboard',this)">
+          <span class="admin-nav-icon">📊</span> Dashboard
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminPage('products',this)">
+          <span class="admin-nav-icon">👕</span> Products
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminPage('orders',this)">
+          <span class="admin-nav-icon">📦</span> Orders
+        </div>
+        <div class="admin-nav-item" onclick="navigate('home')">
+          <span class="admin-nav-icon">🏠</span> Back to Store
+        </div>
+      </aside>
+
+      <!-- Admin Main -->
+      <div class="admin-main">
+
+        <!-- Dashboard Page -->
+        <div class="admin-page active" id="admin-page-dashboard">
+          <div class="admin-main-hdr">
+            <h1>Dashboard</h1>
+            <span style="font-size:14px;color:var(--text-soft)">Welcome back, Admin</span>
+          </div>
+          <div class="stats-grid" id="admin-stats"></div>
+          <div class="admin-table-card" style="margin-top:0">
+            <div class="admin-table-toolbar">
+              <h3 style="font-family:var(--font-h);font-size:1rem">Recent Products</h3>
+              <button class="btn btn-navy btn-sm" onclick="switchAdminPage('products',document.querySelector('[onclick*=products]'))">View All</button>
+            </div>
+            <table class="data-table"><thead><tr><th>Image</th><th>Name</th><th>Brand</th><th>Price</th><th>Stock</th></tr></thead>
+            <tbody id="admin-recent-products"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Products Page -->
+        <div class="admin-page" id="admin-page-products">
+          <div class="admin-main-hdr">
+            <h1>Products</h1>
+            <button class="btn btn-navy" onclick="openProductForm()">+ Add Product</button>
+          </div>
+          <div class="admin-table-card">
+            <div class="admin-table-toolbar">
+              <input type="text" class="admin-search" id="admin-product-search" placeholder="Search products…" oninput="renderAdminProductsTable()">
+              <span id="admin-product-count" style="font-size:14px;color:var(--text-soft)"></span>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Image</th><th>Name</th><th>Brand</th><th>Category</th>
+                  <th>Price</th><th>Stock</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-products-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Orders Page -->
+        <div class="admin-page" id="admin-page-orders">
+          <div class="admin-main-hdr"><h1>Orders</h1></div>
+          <div class="admin-table-card">
+            <table class="data-table">
+              <thead><tr><th>Order ID</th><th>Product</th><th>Size</th><th>Price</th><th>Status</th></tr></thead>
+              <tbody id="admin-orders-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div><!-- /#app -->
+
+<!-- ============================================================
+     OVERLAY BACKDROP
+     ============================================================ -->
+<div id="overlay-backdrop" class="overlay-backdrop" onclick="closeAllOverlays()"></div>
+
+<!-- ============================================================
+     PRODUCT DETAIL MODAL
+     ============================================================ -->
+<div id="product-modal" class="product-modal" role="dialog" aria-modal="true" aria-label="Product detail">
+  <div class="pm-inner">
+    <button class="modal-close" onclick="closeProductModal()" aria-label="Close">✕</button>
+    <div class="pm-images">
+      <img class="pm-main-img" id="pm-main-img" src="" alt="">
+      <div class="pm-thumbs" id="pm-thumbs"></div>
+    </div>
+    <div class="pm-details">
+      <div class="pm-brand" id="pm-brand"></div>
+      <div class="pm-name"  id="pm-name"></div>
+      <div class="pm-price-row">
+        <span class="pm-price" id="pm-price"></span>
+        <span class="pm-orig-price" id="pm-orig-price"></span>
+        <span class="pm-discount" id="pm-discount"></span>
+      </div>
+      <div id="pm-ai-size-box"></div>
+      <div class="size-selector-label">
+        Select Size
+        <span class="size-guide-link" onclick="openSizeWizard()">Size Guide →</span>
+      </div>
+      <div class="size-chips-row" id="pm-sizes"></div>
+      <div class="pm-actions">
+        <button class="btn btn-navy btn-lg pm-add-cart" id="pm-add-cart-btn">Add to Bag</button>
+        <button class="btn btn-outline pm-wishlist-btn" id="pm-wishlist-btn">♡ Save to Wishlist</button>
+      </div>
+      <div class="product-details-accordion" id="pm-accordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">Product Details <span class="accordion-arrow">▼</span></button>
+          <div class="accordion-content" id="pm-description"></div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger" onclick="toggleAccordion(this)">Fabric &amp; Care <span class="accordion-arrow">▼</span></button>
+          <div class="accordion-content" id="pm-fabric"></div>
+        </div>
+      </div>
+      <div class="complete-look">
+        <h4>Complete the Look</h4>
+        <div class="look-items" id="pm-look-items"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     CART DRAWER
+     ============================================================ -->
+<div id="cart-drawer" class="cart-drawer" role="dialog" aria-label="Shopping cart">
+  <div class="cart-drawer-header">
+    <span class="cart-drawer-title">Your Bag <span id="cart-count-label" style="font-size:1rem;color:var(--text-soft);font-family:var(--font-b);font-weight:400"></span></span>
+    <button class="btn-icon" onclick="closeCart()" aria-label="Close cart">✕</button>
+  </div>
+  <div class="cart-items-wrap" id="cart-items-wrap"></div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div id="cart-size-warning" class="cart-size-warning" style="display:none">
+      ⚠ Some items don't have your AI-recommended size. Double-check before checkout.
+    </div>
+    <div class="cart-subtotal-row">
+      <span class="cart-subtotal-label">Total</span>
+      <span class="cart-subtotal-val" id="cart-total"></span>
+    </div>
+    <button class="btn btn-navy btn-block btn-lg" style="margin-top:12px" onclick="openCheckout()">Checkout →</button>
+    <button class="btn btn-ghost btn-block btn-sm" style="margin-top:6px;color:var(--text-soft)" onclick="closeCart()">Continue Shopping</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     AI SIZE WIZARD
+     ============================================================ -->
+<div id="size-wizard" class="size-wizard" role="dialog" aria-modal="true" aria-label="AI size finder">
+  <div class="wizard-inner">
+    <div class="wizard-progress" id="wizard-progress">
+      <div class="wiz-dot active" id="wdot-0"></div>
+      <div class="wiz-dot" id="wdot-1"></div>
+      <div class="wiz-dot" id="wdot-2"></div>
+      <div class="wiz-dot" id="wdot-3"></div>
+    </div>
+
+    <!-- Step 0: Intro & Privacy -->
+    <div class="wizard-step active" id="wstep-0">
+      <div class="wizard-step-tag">Step 1 of 4 — Privacy &amp; Setup</div>
+      <h2>Meet Your AI Size Finder</h2>
+      <p>Powered by 3DLOOK technology, we capture 80+ body measurements using your smartphone camera — no measurements needed. Your data is encrypted and never shared.</p>
+      <div style="background:var(--navy-soft);border-radius:var(--r-md);padding:20px;margin-bottom:24px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:12px;align-items:flex-start"><span style="font-size:1.3rem">🔒</span><div><strong style="font-family:var(--font-h)">Privacy first</strong><br><span style="font-size:13px;color:var(--text-mid)">No raw images stored. Measurements processed on-device and encrypted in transit.</span></div></div>
+          <div style="display:flex;gap:12px;align-items:flex-start"><span style="font-size:1.3rem">📐</span><div><strong style="font-family:var(--font-h)">80+ measurements</strong><br><span style="font-size:13px;color:var(--text-mid)">Chest, waist, hips, shoulders, inseam and many more — all from 2 photos.</span></div></div>
+          <div style="display:flex;gap:12px;align-items:flex-start"><span style="font-size:1.3rem">✦</span><div><strong style="font-family:var(--font-h)">Instant size match</strong><br><span style="font-size:13px;color:var(--text-mid)">Your recommended size appears on every product, across all brands.</span></div></div>
+        </div>
+      </div>
+      <div class="wizard-nav">
+        <button class="btn btn-ghost btn-sm" onclick="closeSizeWizard()">Maybe later</button>
+        <div class="wizard-nav-right">
+          <button class="btn btn-navy" onclick="wizardNext()">Get Started →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Scan / Manual -->
+    <div class="wizard-step" id="wstep-1">
+      <div class="wizard-step-tag">Step 2 of 4 — Body Scan</div>
+      <h2>Capture Your Measurements</h2>
+      <p>Stand 2m from camera in form-fitting clothes for best results.</p>
+      <div class="scan-tabs">
+        <button class="scan-tab active" id="scan-tab-camera" onclick="setScanMode('camera',this)">📷 AI Camera Scan</button>
+        <button class="scan-tab" id="scan-tab-manual" onclick="setScanMode('manual',this)">✏ Enter Manually</button>
+      </div>
+      <div id="scan-camera-panel">
+        <div class="scan-container" id="scan-container">
+          <span class="scan-silhouette">🧍</span>
+          <div class="scan-line"></div>
+          <div class="scan-frame"></div>
+          <div id="scan-keypoints"></div>
+          <div class="scan-status" id="scan-status">
+            <span class="status-dot"></span> <span id="scan-status-text">Position yourself in frame</span>
+          </div>
+        </div>
+        <button class="btn btn-navy btn-block" id="scan-capture-btn" onclick="startScan()">📷 Capture Front Photo</button>
+      </div>
+      <div id="scan-manual-panel" style="display:none">
+        <div class="manual-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Height (cm)</label>
+              <input type="number" class="form-input" id="m-height" placeholder="e.g. 168" min="100" max="230">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Weight (kg)</label>
+              <input type="number" class="form-input" id="m-weight" placeholder="e.g. 62" min="30" max="200">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Chest (cm)</label>
+              <input type="number" class="form-input" id="m-chest" placeholder="e.g. 90" min="50" max="200">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Waist (cm)</label>
+              <input type="number" class="form-input" id="m-waist" placeholder="e.g. 74" min="40" max="180">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Hips (cm)</label>
+              <input type="number" class="form-input" id="m-hips" placeholder="e.g. 96" min="50" max="200">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Inseam (cm)</label>
+              <input type="number" class="form-input" id="m-inseam" placeholder="e.g. 76" min="30" max="120">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Shoe Size (EU)</label>
+              <input type="number" class="form-input" id="m-shoe" placeholder="e.g. 39" min="30" max="52">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select class="form-select" id="m-gender">
+                <option value="Women">Women</option>
+                <option value="Men">Men</option>
+                <option value="Non-binary">Non-binary</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wizard-nav">
+        <button class="btn btn-ghost btn-sm" onclick="wizardBack()">← Back</button>
+        <div class="wizard-nav-right">
+          <button class="btn btn-navy" id="wizard-step1-next" onclick="wizardStep1Next()">Analyse →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Processing -->
+    <div class="wizard-step" id="wstep-2">
+      <div class="wizard-step-tag">Step 3 of 4 — AI Processing</div>
+      <h2>Analysing Your Measurements</h2>
+      <p>Our AI is mapping 80+ body data points against our brand size databases…</p>
+      <div class="processing-wrap">
+        <div class="processing-ring"></div>
+        <div class="processing-steps" id="processing-steps">
+          <div class="p-step current" id="pstep-0"><span class="p-step-icon">⏳</span> Detecting body outline</div>
+          <div class="p-step" id="pstep-1"><span class="p-step-icon">⬜</span> Mapping 80+ keypoints</div>
+          <div class="p-step" id="pstep-2"><span class="p-step-icon">⬜</span> Computing circumferences</div>
+          <div class="p-step" id="pstep-3"><span class="p-step-icon">⬜</span> Matching brand size charts</div>
+          <div class="p-step" id="pstep-4"><span class="p-step-icon">⬜</span> Saving to your profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Results -->
+    <div class="wizard-step" id="wstep-3">
+      <div class="wizard-step-tag">Step 4 of 4 — Your Size Profile</div>
+      <h2>Your Perfect Fit ✦</h2>
+      <p>Based on <strong id="results-point-count">82</strong> body measurements, here's your personalised size profile.</p>
+      <div class="mmt-grid" id="results-measurements"></div>
+      <h3 style="font-family:var(--font-h);font-size:1rem;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-soft)">Your Brand Sizes</h3>
+      <div class="brand-sz-grid" id="results-brand-sizes"></div>
+      <div class="wizard-nav">
+        <div></div>
+        <div class="wizard-nav-right">
+          <button class="btn btn-navy" onclick="closeSizeWizard();showSizeProfileInNav()">Shop with My Size ✦</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     CHECKOUT MODAL
+     ============================================================ -->
+<div id="checkout-modal" class="checkout-modal" role="dialog" aria-modal="true">
+  <div class="checkout-inner">
+    <div class="checkout-header">
+      <span class="checkout-title" id="checkout-title">Checkout</span>
+      <button class="btn-icon" onclick="closeCheckout()" aria-label="Close">✕</button>
+    </div>
+    <div class="checkout-progress" id="checkout-progress">
+      <div class="co-dot active"></div>
+      <div class="co-dot"></div>
+      <div class="co-dot"></div>
+    </div>
+
+    <!-- Step 0: Review Order -->
+    <div class="co-step active" id="co-step-0">
+      <div class="co-section-title">Order Summary</div>
+      <div class="order-summary-items" id="order-summary-items"></div>
+      <div class="order-total-row"><span>Total</span><span id="order-grand-total" style="font-family:var(--font-h);font-size:1.3rem;color:var(--navy)"></span></div>
+      <div style="margin-top:16px;margin-bottom:16px;background:#f0f9ff;border-radius:var(--r-sm);padding:12px 14px;font-size:13px;color:#0369a1;display:flex;gap:8px;align-items:center">
+        <span>✦</span> <span>All items matched to your AI-recommended size!</span>
+      </div>
+      <button class="btn btn-navy btn-block btn-lg" onclick="coNext()">Continue to Shipping →</button>
+    </div>
+
+    <!-- Step 1: Shipping -->
+    <div class="co-step" id="co-step-1">
+      <div class="co-section-title">Shipping Details</div>
+      <div class="manual-form">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="co-fname" placeholder="Tatenda"></div>
+          <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="co-lname" placeholder="Ndlovu"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="co-email" placeholder="tatenda@email.com"></div>
+        <div class="form-group"><label class="form-label">Street Address</label><input class="form-input" id="co-address" placeholder="123 Samora Machel Ave"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">City</label><input class="form-input" id="co-city" placeholder="Harare"></div>
+          <div class="form-group"><label class="form-label">Country</label><input class="form-input" id="co-country" value="Zimbabwe"></div>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">Delivery Option</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px"><input type="radio" name="delivery" value="standard" checked style="accent-color:var(--navy)"> Standard (3-5 days) — Free</label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px"><input type="radio" name="delivery" value="express" style="accent-color:var(--navy)"> Express (1-2 days) — $8.99</label>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:24px">
+        <button class="btn btn-outline" onclick="coBack()">← Back</button>
+        <button class="btn btn-navy" style="flex:1" onclick="coNext()">Continue to Payment →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Payment / Success -->
+    <div class="co-step" id="co-step-2">
+      <div id="payment-form-wrap">
+        <div class="co-section-title">Payment</div>
+        <div class="manual-form">
+          <div class="form-group"><label class="form-label">Cardholder Name</label><input class="form-input" id="co-card-name" placeholder="T. Ndlovu"></div>
+          <div class="form-group"><label class="form-label">Card Number</label><input class="form-input" id="co-card-num" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Expiry (MM/YY)</label><input class="form-input" id="co-expiry" placeholder="08/28" maxlength="5"></div>
+            <div class="form-group"><label class="form-label">CVV</label><input class="form-input" id="co-cvv" placeholder="123" maxlength="4" type="password"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px;background:var(--surface);border-radius:var(--r-sm);padding:12px 14px;font-size:12px;color:var(--text-soft);display:flex;gap:8px;align-items:center">
+          🔒 Secured by 256-bit SSL encryption. Your card data is never stored.
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px">
+          <button class="btn btn-outline" onclick="coBack()">← Back</button>
+          <button class="btn btn-navy" style="flex:1" onclick="placeOrder()">Place Order →</button>
+        </div>
+      </div>
+      <div id="order-success-wrap" class="order-success" style="display:none">
+        <div class="success-icon">🎉</div>
+        <h2>Order Placed!</h2>
+        <p>Thank you! Your order has been confirmed and will be with you soon.</p>
+        <div class="order-tracker">
+          <div class="tracker-step">
+            <div class="t-dot done">✓</div>
+            <div class="t-info"><div class="t-label">Order Confirmed</div><div class="t-sub" id="tr-confirmed"></div></div>
+          </div>
+          <div class="tracker-step">
+            <div class="t-dot current">📦</div>
+            <div class="t-info"><div class="t-label">Packing &amp; Dispatch</div><div class="t-sub">Estimated within 24 hours</div></div>
+          </div>
+          <div class="tracker-step">
+            <div class="t-dot">🚚</div>
+            <div class="t-info"><div class="t-label">In Transit</div><div class="t-sub">3-5 business days</div></div>
+          </div>
+          <div class="tracker-step">
+            <div class="t-dot">🏠</div>
+            <div class="t-info"><div class="t-label">Delivered</div><div class="t-sub">To your door</div></div>
+          </div>
+        </div>
+        <button class="btn btn-navy" style="margin-top:32px" onclick="closeCheckout();navigate('home')">Continue Shopping</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     ADMIN PRODUCT FORM MODAL
+     ============================================================ -->
+<div id="admin-modal" class="admin-modal" role="dialog" aria-modal="true">
+  <div class="admin-modal-inner">
+    <div class="admin-modal-hdr">
+      <h2 id="admin-modal-title">Add Product</h2>
+      <button class="btn-icon" onclick="closeAdminModal()">✕</button>
+    </div>
+    <form id="product-form" onsubmit="saveProduct(event)" autocomplete="off">
+      <input type="hidden" id="pf-id">
+      <div class="manual-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Product Name *</label>
+            <input class="form-input" id="pf-name" required placeholder="e.g. Jordan Air Max">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Brand *</label>
+            <input class="form-input" id="pf-brand" required placeholder="e.g. Nike">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select class="form-select" id="pf-category" required>
+              <option value="">Select…</option>
+              <option value="Shoes">Shoes</option>
+              <option value="Tops">Tops</option>
+              <option value="Bottoms">Bottoms</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Kids">Kids</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <select class="form-select" id="pf-gender">
+              <option value="Unisex">Unisex</option>
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Kids">Kids</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Price ($) *</label>
+            <input class="form-input" type="number" id="pf-price" required min="1" placeholder="e.g. 89">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Original Price ($)</label>
+            <input class="form-input" type="number" id="pf-orig-price" min="0" placeholder="e.g. 120">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Image URL *</label>
+          <input class="form-input" id="pf-image" required placeholder="https://…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Additional Images (comma-separated URLs)</label>
+          <input class="form-input" id="pf-images-extra" placeholder="https://… , https://…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Available Sizes (comma-separated)</label>
+          <input class="form-input" id="pf-sizes" placeholder="XS, S, M, L, XL or 7, 8, 9, 10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Available Colours (comma-separated)</label>
+          <input class="form-input" id="pf-colors" placeholder="Black, White, Red">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" id="pf-description" rows="3" placeholder="Product description…" style="resize:vertical"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Fabric / Material</label>
+            <input class="form-input" id="pf-fabric" placeholder="e.g. 100% Cotton">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rating (0–5)</label>
+            <input class="form-input" type="number" id="pf-rating" min="0" max="5" step="0.1" placeholder="4.2">
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600">
+            <input type="checkbox" id="pf-instock" checked style="width:18px;height:18px;accent-color:var(--navy)"> In Stock
+          </label>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600">
+            <input type="checkbox" id="pf-trending" style="width:18px;height:18px;accent-color:var(--navy)"> Show in Trending
+          </label>
+        </div>
+        <div class="form-row" style="margin-top:8px">
+          <button type="button" class="btn btn-outline" onclick="closeAdminModal()">Cancel</button>
+          <button type="submit" class="btn btn-navy" style="flex:1">Save Product</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
+     CONFIRM DIALOG
+     ============================================================ -->
+<div id="confirm-dialog" class="confirm-dialog" role="alertdialog">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑</div>
+    <h3 id="confirm-title">Delete Product?</h3>
+    <p id="confirm-msg">This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-navy" id="confirm-ok-btn" style="background:var(--error)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ============================================================
+     SCRIPT — STATE ENGINE & APP LOGIC
+     ============================================================ -->
+<script>
+'use strict';
+
+/* ─── PRODUCT CATALOG ────────────────────────────────────────── */
+const DEFAULT_PRODUCTS = [
+  {id:1,name:'Jordan Jumpman Knockout',brand:'Nike',category:'Shoes',gender:'Men',price:138,originalPrice:170,images:['https://i.pinimg.com/736x/c2/c7/40/c2c740d467e07e78307e2163ca421c01.jpg'],colors:['Black','White'],sizes:['7','8','9','10','11','12'],rating:4.2,reviews:128,fabric:'Premium leather upper, mesh lining, rubber outsole.',care:'Wipe with damp cloth. Air dry only.',description:'Court-ready performance meets street-style in the Jordan Jumpman Knockout. Built for versatile wear with iconic Jumpman branding.',tags:['trending'],inStock:true},
+  {id:2,name:'Jonathan D Loafers',brand:'Jonathan D',category:'Shoes',gender:'Men',price:80,originalPrice:110,images:['https://i.pinimg.com/736x/c5/8d/99/c58d99ec20d03e5fa1a284770e19731f.jpg'],colors:['Brown','Black'],sizes:['7','8','9','10','11'],rating:4.5,reviews:64,fabric:'Genuine suede upper, leather insole.',care:'Treat with suede protector. Keep dry.',description:'Sleek penny loafers with modern proportions. Versatile enough for business casual or smart-casual evenings.',tags:['trending'],inStock:true},
+  {id:3,name:'Baggy Cargo Pants',brand:'Retro Supply',category:'Bottoms',gender:'Unisex',price:87,originalPrice:110,images:['https://i.pinimg.com/736x/58/3c/12/583c12cddb3518aa467ce9ab872c52a8.jpg'],colors:['Olive','Black','Khaki'],sizes:['XS','S','M','L','XL','XXL'],rating:4.3,reviews:210,fabric:'98% Cotton, 2% Elastane. Brushed twill.',care:'Machine wash cold. Tumble dry low.',description:'Relaxed-fit cargo pants with multiple utility pockets. The go-to for effortless streetwear looks.',tags:['trending'],inStock:true},
+  {id:4,name:'Boxy Cropped Shirt',brand:'Zara',category:'Tops',gender:'Women',price:15,originalPrice:22,images:['https://i.pinimg.com/1200x/de/44/c2/de44c253ba7cf1c73794d70200940f98.jpg'],colors:['White','Black','Beige'],sizes:['XS','S','M','L','XL'],rating:4.1,reviews:340,fabric:'100% Organic Cotton. Pre-washed.',care:'Machine wash 30°. Do not bleach.',description:'A modern boxy crop with dropped shoulders. Layer over high-waisted bottoms for an effortless editorial look.',tags:['trending'],inStock:true},
+  {id:5,name:'Jordan 4 Brick By Brick',brand:'Nike',category:'Shoes',gender:'Unisex',price:195,originalPrice:240,images:['https://i.pinimg.com/1200x/17/46/be/1746be13a6f93d74f1200069412f996d.jpg'],colors:['Multi'],sizes:['6','7','8','9','10','11','12'],rating:4.8,reviews:512,fabric:'Nubuck leather, mesh panels, Air unit.',care:'Wipe clean. Avoid submerging.',description:'The iconic Jordan 4 silhouette recoloured in the Brick By Brick colourway. A grail-worthy release for sneaker collectors.',tags:['trending','new'],inStock:true},
+  {id:6,name:'Strappy Block Heels',brand:'Zara',category:'Shoes',gender:'Women',price:78,originalPrice:95,images:['https://i.pinimg.com/736x/2c/5f/29/2c5f290fbd921f4e3d5befd55ad54ad6.jpg'],colors:['Nude','Black'],sizes:['5','6','7','7.5','8','9'],rating:4.0,reviews:88,fabric:'Faux leather upper, rubber sole.',care:'Wipe with dry cloth. Store in dust bag.',description:'Elevated block heels with a feminine strappy design. Perfect for events, dinners, and nights out.',tags:['trending'],inStock:true},
+  {id:7,name:'Baby Romper Set',brand:'Little Drape',category:'Kids',gender:'Kids',price:22,originalPrice:32,images:['https://i.pinimg.com/736x/ce/ad/ba/ceadba0b630320ce54c9fa59d2fc9095.jpg'],colors:['White','Pink','Blue'],sizes:['0-3M','3-6M','6-12M','12-18M'],rating:4.7,reviews:155,fabric:'100% Organic Cotton. Hypoallergenic.',care:'Machine wash 40°. Tumble dry low.',description:'Soft organic cotton romper with snap closure. Gentle on delicate skin, designed for comfort and cuteness.',tags:['trending'],inStock:true},
+  {id:8,name:'Merino Wool Beanie',brand:'Retro Supply',category:'Accessories',gender:'Unisex',price:35,originalPrice:50,images:['https://i.pinimg.com/1200x/26/8c/fe/268cfe2121b50c94c839ad17868ae51e.jpg'],colors:['Charcoal','Cream','Rust'],sizes:['One Size'],rating:4.6,reviews:73,fabric:'100% Fine Merino Wool. Rib-knit.',care:'Hand wash cold. Lay flat to dry.',description:'Ultra-soft merino beanie with a classic ribbed finish. Your essential cold-weather companion.',tags:['trending'],inStock:true},
+  {id:9,name:'Adidas Ultraboost 22',brand:'Adidas',category:'Shoes',gender:'Unisex',price:160,originalPrice:200,images:['https://i.pinimg.com/736x/cb/49/a2/cb49a2d48b1e26c4cc9c5322c9a61218.jpg'],colors:['White','Black','Blue'],sizes:['6','7','8','9','10','11','12'],rating:4.7,reviews:620,fabric:'Primeknit+ upper, BOOST midsole, Continental rubber.',care:'Machine wash 30°. Air dry.',description:'The benchmark running shoe. Responsive BOOST cushioning, a sock-like Primeknit+ fit, and a clean minimalist look.',tags:['trending','new'],inStock:true},
+  {id:10,name:'Linen Summer Dress',brand:'Zara',category:'Tops',gender:'Women',price:55,originalPrice:72,images:['https://i.pinimg.com/1200x/de/44/c2/de44c253ba7cf1c73794d70200940f98.jpg'],colors:['White','Terracotta','Sage'],sizes:['XS','S','M','L','XL'],rating:4.4,reviews:188,fabric:'55% Linen, 45% Viscose.',care:'Hand wash or gentle cycle. Iron on low.',description:'Flowy midi dress in a breathable linen blend. Ideal for warm-weather days from brunch to beach.',tags:['new'],inStock:true},
+  {id:11,name:'Slim Tapered Chinos',brand:'Jonathan D',category:'Bottoms',gender:'Men',price:65,originalPrice:85,images:['https://i.pinimg.com/736x/58/3c/12/583c12cddb3518aa467ce9ab872c52a8.jpg'],colors:['Navy','Stone','Olive'],sizes:['28','30','32','34','36','38'],rating:4.3,reviews:141,fabric:'97% Cotton, 3% Elastane. Peached finish.',care:'Machine wash 30°. Iron inside out.',description:'Clean-cut chinos with a slim-tapered fit. The foundation of any versatile wardrobe.',tags:['new'],inStock:true},
+  {id:12,name:'Vans Old Skool Pro',brand:'Vans',category:'Shoes',gender:'Unisex',price:85,originalPrice:100,images:['https://i.pinimg.com/1200x/11/9a/6e/119a6e747ab66f605509269058cb97e7.jpg'],colors:['Black/White','Navy/White','Red'],sizes:['6','7','8','9','10','11','12'],rating:4.5,reviews:430,fabric:'Suede and canvas upper, waffle outsole.',care:'Spot clean canvas. Brush suede.',description:'A skateboarding icon since 1977. The Old Skool Pro reinforces a classic silhouette with pro-grade rubber.',tags:['trending'],inStock:true},
+];
+
+const DEALS = [
+  {brand:'NIKE',copy:'Air Max — 30% Off',discount:'30% OFF',img:'https://i.pinimg.com/736x/80/33/a4/8033a49a1af88a4e4b3e22abd2795173.jpg',filter:'Nike'},
+  {brand:'ADIDAS',copy:'Ultraboost 22 — 20% Off',discount:'20% OFF',img:'https://i.pinimg.com/736x/cb/49/a2/cb49a2d48b1e26c4cc9c5322c9a61218.jpg',filter:'Adidas'},
+  {brand:'RETRO',copy:'Streetwear Bundles',discount:'15% OFF',img:'https://i.pinimg.com/1200x/90/41/ad/9041adb5b2b5b4c92a314068f420be00.jpg',filter:'Retro Supply'},
+  {brand:'VANS',copy:'Off the Wall — Old Skool',discount:'OFF WALL',img:'https://i.pinimg.com/1200x/11/9a/6e/119a6e747ab66f605509269058cb97e7.jpg',filter:'Vans'},
+];
+
+const VS_PRESETS = [
+  {label:'Street Minimal',img:'https://i.pinimg.com/736x/c2/c7/40/c2c740d467e07e78307e2163ca421c01.jpg',query:'Shoes'},
+  {label:'Boho Dress',img:'https://i.pinimg.com/1200x/de/44/c2/de44c253ba7cf1c73794d70200940f98.jpg',query:'Tops'},
+  {label:'Athleisure',img:'https://i.pinimg.com/736x/cb/49/a2/cb49a2d48b1e26c4cc9c5322c9a61218.jpg',query:'Shoes'},
+  {label:'Cargo Fit',img:'https://i.pinimg.com/736x/58/3c/12/583c12cddb3518aa467ce9ab872c52a8.jpg',query:'Bottoms'},
+  {label:'Kids Cute',img:'https://i.pinimg.com/736x/ce/ad/ba/ceadba0b630320ce54c9fa59d2fc9095.jpg',query:'Kids'},
+];
+
+/* ─── STATE ──────────────────────────────────────────────────── */
+let state = {
+  products: [],
+  cart: [],
+  wishlist: [],
+  orders: [],
+  userProfile: {hasScanned:false, measurements:{}, brandSizes:{}, stylePrefs:[]},
+  activeView: 'home',
+  activeProduct: null,
+  filters: {category:'all',gender:'all',brands:[],sizes:[],colors:[],maxPrice:500,sort:'relevance',search:''},
+  wizardStep: 0,
+  scanMode: 'camera',
+  scanPhase: 0,
+  coStep: 0,
+};
+
+/* ─── PERSISTENCE ────────────────────────────────────────────── */
+function saveState(){
+  try{
+    localStorage.setItem('drape_products', JSON.stringify(state.products));
+    localStorage.setItem('drape_cart',     JSON.stringify(state.cart));
+    localStorage.setItem('drape_wishlist', JSON.stringify(state.wishlist));
+    localStorage.setItem('drape_orders',   JSON.stringify(state.orders));
+    localStorage.setItem('drape_profile',  JSON.stringify(state.userProfile));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const p = localStorage.getItem('drape_products');
+    state.products = p ? JSON.parse(p) : JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+    const c = localStorage.getItem('drape_cart');     if(c) state.cart = JSON.parse(c);
+    const w = localStorage.getItem('drape_wishlist'); if(w) state.wishlist = JSON.parse(w);
+    const o = localStorage.getItem('drape_orders');   if(o) state.orders = JSON.parse(o);
+    const u = localStorage.getItem('drape_profile');  if(u) state.userProfile = JSON.parse(u);
+  }catch(e){ state.products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS)); }
+}
+
+/* ─── NAVIGATION ─────────────────────────────────────────────── */
+function navigate(view){
+  // handle gender shortcuts
+  if(['men','women','kids'].includes(view)){
+    state.filters.gender = view.charAt(0).toUpperCase()+view.slice(1);
+    view = 'shop';
+  }
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const el = document.getElementById('view-'+view);
+  if(el) el.classList.add('active');
+  state.activeView = view;
+  document.querySelectorAll('.header-nav a').forEach(a=>a.classList.remove('active'));
+  const na = document.getElementById('nav-'+view);
+  if(na) na.classList.add('active');
+  if(view==='shop') renderShopView();
+  if(view==='visual-search') renderVSView();
+  if(view==='profile') renderProfileView();
+  if(view==='admin') renderAdminView();
+  if(view==='home') renderHomeView();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ─── RENDER HELPERS ─────────────────────────────────────────── */
+function stars(r){
+  const full=Math.floor(r), half=(r%1)>=.5, empty=5-full-(half?1:0);
+  return '★'.repeat(full)+(half?'½':'')+('☆'.repeat(empty));
+}
+function formatPrice(n){return '$'+n.toFixed(0)}
+function getAiSize(product){
+  if(!state.userProfile.hasScanned) return null;
+  const s = state.userProfile.brandSizes;
+  if(s[product.brand]) return s[product.brand];
+  if(product.category==='Shoes') return s['_shoe']||null;
+  return s['_top']||null;
+}
+function isWishlisted(id){return state.wishlist.includes(id)}
+function productCard(p, showMatch=false, matchScore=null){
+  const aiSize = getAiSize(p);
+  const discPct = p.originalPrice? Math.round((1-p.price/p.originalPrice)*100) : 0;
+  const liked = isWishlisted(p.id);
+  return `<article class="product-card" onclick="openProductModal(${p.id})">
+    <div class="product-img">
+      <img src="${p.images[0]}" alt="${p.name}" loading="lazy">
+      ${showMatch && matchScore ? `<div class="vs-match-tag">✦ ${matchScore}% match</div>`:''}
+      <div class="product-hover-actions">
+        <button class="ph-btn${liked?' liked':''}" onclick="event.stopPropagation();toggleWishlist(${p.id})" title="${liked?'Remove from':'Add to'} wishlist" id="ph-wl-${p.id}">${liked?'❤':'♡'}</button>
+        <button class="ph-btn" onclick="event.stopPropagation();quickAddToCart(${p.id})" title="Quick add">+</button>
+      </div>
+      ${aiSize?`<div class="ai-size-tag"><span class="ai-dot"></span>Your size: <strong>${aiSize}</strong></div>`:''}
+    </div>
+    <div class="product-info">
+      <div class="product-brand">${p.brand}</div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-bottom">
+        <div class="product-price">
+          <span class="price-main">${formatPrice(p.price)}</span>
+          ${p.originalPrice?`<span class="price-orig">${formatPrice(p.originalPrice)}</span>`:''}
+          ${discPct>0?`<span class="price-disc">-${discPct}%</span>`:''}
+        </div>
+        <button class="add-btn" onclick="event.stopPropagation();quickAddToCart(${p.id})" title="Add to cart">+</button>
+      </div>
+      <div class="product-rating"><span class="stars">${stars(p.rating)}</span><span>(${p.reviews})</span></div>
+    </div>
+  </article>`;
+}
+
+/* ─── HOME VIEW ──────────────────────────────────────────────── */
+function renderHomeView(){
+  renderDeals();
+  renderTrending();
+}
+function renderDeals(){
+  const track = document.getElementById('deals-track');
+  if(!track) return;
+  track.innerHTML = DEALS.map(d=>`
+    <article class="deal-card" onclick="navigate('shop')">
+      <img src="${d.img}" alt="${d.brand}" loading="lazy">
+      <div class="deal-overlay"></div>
+      <div class="deal-meta">
+        <span class="deal-brand">${d.brand}</span>
+        <p class="deal-copy">${d.copy}</p>
+      </div>
+      <span class="deal-badge">${d.discount}</span>
+    </article>`).join('');
+  // carousel buttons
+  const prev=document.getElementById('deals-prev');
+  const next=document.getElementById('deals-next');
+  if(prev&&next){
+    prev.onclick=()=>track.scrollBy({left:-304,behavior:'smooth'});
+    next.onclick=()=>track.scrollBy({left:304,behavior:'smooth'});
+  }
+}
+function renderTrending(){
+  const grid=document.getElementById('trending-grid');
+  if(!grid) return;
+  const trending = state.products.filter(p=>p.tags&&p.tags.includes('trending')).slice(0,8);
+  grid.innerHTML = trending.map(p=>productCard(p)).join('');
+}
+
+/* ─── SHOP VIEW ──────────────────────────────────────────────── */
+function renderShopView(){
+  renderBrandFilters();
+  renderSizeFilters();
+  renderColorFilters();
+  applyFilters();
+}
+function renderBrandFilters(){
+  const el=document.getElementById('filter-brands');
+  if(!el) return;
+  const brands=[...new Set(state.products.map(p=>p.brand))];
+  el.innerHTML=brands.map(b=>`<label class="filter-option"><input type="checkbox" value="${b}" onchange="applyFilters()"><label>${b}</label></label>`).join('');
+}
+function renderSizeFilters(){
+  const el=document.getElementById('filter-sizes');
+  if(!el) return;
+  const all=[...new Set(state.products.flatMap(p=>p.sizes))];
+  el.innerHTML=all.map(s=>`<div class="size-chip" onclick="toggleSizeFilter('${s}',this)">${s}</div>`).join('');
+}
+function renderColorFilters(){
+  const el=document.getElementById('filter-colors');
+  if(!el) return;
+  const colorMap={'Black':'#111','White':'#f5f5f5','Brown':'#8B5E3C','Navy':'#1a3a52','Olive':'#6B7C47','Khaki':'#C3B091','Beige':'#F5E9D0','Nude':'#E8C9A0','Multi':'linear-gradient(135deg,red,blue,green)','Red':'#ef4444','Charcoal':'#374151','Cream':'#FFF8E7','Rust':'#b45309','Terracotta':'#c2714f','Sage':'#87a882','Blue':'#3b82f6','Grey':'#9ca3af','Pink':'#f9a8d4'};
+  const colors=[...new Set(state.products.flatMap(p=>p.colors))];
+  el.innerHTML=colors.map(c=>`<div class="clr-swatch" title="${c}" style="background:${colorMap[c]||'#ccc'}" onclick="toggleColorFilter('${c}',this)"></div>`).join('');
+}
+function toggleSizeFilter(s,el){
+  el.classList.toggle('selected');
+  const idx=state.filters.sizes.indexOf(s);
+  if(idx>-1) state.filters.sizes.splice(idx,1); else state.filters.sizes.push(s);
+  applyFilters();
+}
+function toggleColorFilter(c,el){
+  el.classList.toggle('selected');
+  const idx=state.filters.colors.indexOf(c);
+  if(idx>-1) state.filters.colors.splice(idx,1); else state.filters.colors.push(c);
+  applyFilters();
+}
+function updatePriceLabel(){
+  const v=document.getElementById('price-max').value;
+  document.getElementById('price-max-label').textContent='$'+v;
+  state.filters.maxPrice=parseInt(v);
+}
+function applyFilters(){
+  const f=state.filters;
+  // read radio buttons
+  const catEl=document.querySelector('input[name="cat"]:checked');
+  const genEl=document.querySelector('input[name="gender"]:checked');
+  if(catEl) f.category=catEl.value;
+  if(genEl) f.gender=genEl.value;
+  const bEls=document.querySelectorAll('#filter-brands input:checked');
+  f.brands=[...bEls].map(e=>e.value);
+  const priceEl=document.getElementById('price-max');
+  if(priceEl) f.maxPrice=parseInt(priceEl.value);
+  const sortEl=document.getElementById('sort-select');
+  if(sortEl) f.sort=sortEl.value;
+  const searchEl=document.getElementById('search-input');
+  if(searchEl) f.search=searchEl.value.trim().toLowerCase();
+
+  let products=[...state.products];
+  if(f.search) products=products.filter(p=>p.name.toLowerCase().includes(f.search)||p.brand.toLowerCase().includes(f.search)||p.category.toLowerCase().includes(f.search));
+  if(f.category!=='all') products=products.filter(p=>p.category===f.category);
+  if(f.gender!=='all') products=products.filter(p=>p.gender===f.gender||p.gender==='Unisex');
+  if(f.brands.length) products=products.filter(p=>f.brands.includes(p.brand));
+  if(f.sizes.length) products=products.filter(p=>p.sizes.some(s=>f.sizes.includes(s)));
+  if(f.colors.length) products=products.filter(p=>p.colors.some(c=>f.colors.includes(c)));
+  products=products.filter(p=>p.price<=f.maxPrice);
+
+  // sort
+  if(f.sort==='price-asc') products.sort((a,b)=>a.price-b.price);
+  else if(f.sort==='price-desc') products.sort((a,b)=>b.price-a.price);
+  else if(f.sort==='newest') products.sort((a,b)=>b.id-a.id);
+  else if(f.sort==='rating') products.sort((a,b)=>b.rating-a.rating);
+
+  const grid=document.getElementById('shop-grid');
+  if(grid) grid.innerHTML=products.map(p=>productCard(p)).join('');
+  const cnt=document.getElementById('shop-count');
+  if(cnt) cnt.textContent=`${products.length} product${products.length!==1?'s':''}`;
+  renderFilterTags();
+}
+function renderFilterTags(){
+  const f=state.filters;
+  const tags=[];
+  if(f.category!=='all') tags.push({label:f.category,clear:()=>{f.category='all';document.querySelector('input[name="cat"]').checked=true;applyFilters()}});
+  if(f.gender!=='all') tags.push({label:f.gender,clear:()=>{f.gender='all';document.querySelector('input[name="gender"]').checked=true;applyFilters()}});
+  f.brands.forEach(b=>tags.push({label:b,clear:()=>{const idx=f.brands.indexOf(b);if(idx>-1)f.brands.splice(idx,1);applyFilters()}}));
+  f.sizes.forEach(s=>tags.push({label:'Size: '+s,clear:()=>{const idx=f.sizes.indexOf(s);if(idx>-1)f.sizes.splice(idx,1);document.querySelectorAll('.size-chip').forEach(el=>{if(el.textContent===s)el.classList.remove('selected')});applyFilters()}}));
+  f.colors.forEach(c=>tags.push({label:c,clear:()=>{const idx=f.colors.indexOf(c);if(idx>-1)f.colors.splice(idx,1);applyFilters()}}));
+  const el=document.getElementById('filter-tags');
+  if(el) el.innerHTML=tags.map((t,i)=>`<span class="filter-tag">${t.label}<button onclick="clearTag(${i})">×</button></span>`).join('');
+  window._filterTagActions=tags;
+}
+function clearTag(i){
+  if(window._filterTagActions&&window._filterTagActions[i]) window._filterTagActions[i].clear();
+}
+function clearFilters(){
+  state.filters={category:'all',gender:'all',brands:[],sizes:[],colors:[],maxPrice:500,sort:'relevance',search:''};
+  document.querySelectorAll('input[name="cat"]')[0].checked=true;
+  document.querySelectorAll('input[name="gender"]')[0].checked=true;
+  document.querySelectorAll('#filter-brands input').forEach(e=>e.checked=false);
+  document.querySelectorAll('.size-chip').forEach(e=>e.classList.remove('selected'));
+  document.querySelectorAll('.clr-swatch').forEach(e=>e.classList.remove('selected'));
+  document.getElementById('price-max').value=500;
+  document.getElementById('price-max-label').textContent='$500';
+  document.getElementById('sort-select').value='relevance';
+  applyFilters();
+  toast('Filters cleared');
+}
+
+/* ─── VISUAL SEARCH VIEW ─────────────────────────────────────── */
+function renderVSView(){
+  const grid=document.getElementById('vs-presets');
+  if(!grid) return;
+  grid.innerHTML=VS_PRESETS.map((p,i)=>`
+    <div class="vs-preset" onclick="runVisualSearch(${i},this)">
+      <img src="${p.img}" alt="${p.label}" loading="lazy">
+      <div class="vs-preset-lbl">${p.label}</div>
+    </div>`).join('');
+  // file upload
+  document.getElementById('vs-file-input').onchange=function(){
+    if(this.files&&this.files[0]){
+      toast('📷 Analysing your image…','');
+      setTimeout(()=>runVisualSearch(0),1200);
+    }
+  };
+}
+function runVisualSearch(presetIdx, el){
+  document.querySelectorAll('.vs-preset').forEach(e=>e.classList.remove('selected'));
+  if(el) el.classList.add('selected');
+  const query=VS_PRESETS[presetIdx]?VS_PRESETS[presetIdx].query:'';
+  const scores=[99,97,94,92,89,87,85,82];
+  let results=state.products;
+  if(query) results=results.filter(p=>p.category===query||p.tags?.includes(query.toLowerCase()));
+  if(results.length<4) results=[...results,...state.products].slice(0,6);
+  const section=document.getElementById('vs-results-section');
+  const grid=document.getElementById('vs-results-grid');
+  const title=document.getElementById('vs-results-title');
+  section.style.display='block';
+  title.textContent=`Showing ${results.length} visual matches`;
+  grid.innerHTML=results.map((p,i)=>productCard(p,true,scores[i]||80)).join('');
+  setTimeout(()=>section.scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+/* ─── PRODUCT MODAL ──────────────────────────────────────────── */
+let selectedSize = null;
+function openProductModal(id){
+  const p=state.products.find(x=>x.id===id);
+  if(!p) return;
+  state.activeProduct=p;
+  selectedSize=null;
+
+  document.getElementById('pm-main-img').src=p.images[0];
+  document.getElementById('pm-main-img').alt=p.name;
+  document.getElementById('pm-brand').textContent=p.brand;
+  document.getElementById('pm-name').textContent=p.name;
+  document.getElementById('pm-price').textContent=formatPrice(p.price);
+  const orig=document.getElementById('pm-orig-price');
+  const disc=document.getElementById('pm-discount');
+  if(p.originalPrice){orig.textContent=formatPrice(p.originalPrice);const d=Math.round((1-p.price/p.originalPrice)*100);disc.textContent='-'+d+'%';}
+  else{orig.textContent='';disc.textContent='';}
+
+  // thumbnails
+  const thumbs=document.getElementById('pm-thumbs');
+  thumbs.innerHTML=p.images.map((img,i)=>`<div class="pm-thumb${i===0?' active':''}" onclick="switchModalImg('${img}',this)"><img src="${img}" alt="${p.name}"></div>`).join('');
+
+  // ai size box
+  const aiSize=getAiSize(p);
+  const aiBox=document.getElementById('pm-ai-size-box');
+  if(aiSize){
+    aiBox.innerHTML=`<div class="ai-size-box"><span class="ai-size-icon">✦</span><div class="ai-size-info"><div class="ai-size-label">Your Perfect Size</div><div class="ai-size-value">${aiSize}</div><div class="ai-size-sub">Based on your 3DLOOK scan</div></div></div>`;
+  } else {
+    aiBox.innerHTML=`<div class="find-size-cta" onclick="closeSizeWizardTrigger()"><p>🤖 Find Your Perfect Size</p><small>AI body scan — takes under 60 seconds</small></div>`;
+  }
+
+  // sizes
+  const sizesEl=document.getElementById('pm-sizes');
+  sizesEl.innerHTML=p.sizes.map(s=>{
+    const isAi=aiSize&&s===aiSize;
+    return `<div class="size-chip-sel${isAi?' ai-pick':''}" onclick="selectSize('${s}',this)">${s}</div>`;
+  }).join('');
+  if(aiSize){selectedSize=aiSize;sizesEl.querySelectorAll('.size-chip-sel').forEach(el=>{if(el.textContent===aiSize)el.classList.add('selected')});}
+
+  // description
+  document.getElementById('pm-description').textContent=p.description||'Premium quality fashion item.';
+  document.getElementById('pm-fabric').textContent=(p.fabric?'Fabric: '+p.fabric+'\n\n':'')+(p.care?'Care: '+p.care:'');
+
+  // add to cart btn
+  document.getElementById('pm-add-cart-btn').onclick=()=>addToCart(p.id, selectedSize);
+  // wishlist btn
+  updateWishlistBtn(p.id);
+  document.getElementById('pm-wishlist-btn').onclick=()=>{toggleWishlist(p.id);updateWishlistBtn(p.id)};
+
+  // complete the look
+  const lookItems=document.getElementById('pm-look-items');
+  const others=state.products.filter(x=>x.id!==p.id).slice(0,5);
+  lookItems.innerHTML=others.map(x=>`<div class="look-item" onclick="openProductModal(${x.id});"><img src="${x.images[0]}" alt="${x.name}"><p>${x.name}</p></div>`).join('');
+
+  document.getElementById('product-modal').classList.add('active');
+  document.getElementById('overlay-backdrop').classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function updateWishlistBtn(id){
+  const btn=document.getElementById('pm-wishlist-btn');
+  if(btn) btn.innerHTML=isWishlisted(id)?'❤ Saved':'♡ Save to Wishlist';
+}
+function switchModalImg(src,el){
+  document.getElementById('pm-main-img').src=src;
+  document.querySelectorAll('.pm-thumb').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+function selectSize(s,el){
+  selectedSize=s;
+  document.querySelectorAll('.size-chip-sel').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function closeSizeWizardTrigger(){closeProductModal();openSizeWizard();}
+function closeProductModal(){
+  document.getElementById('product-modal').classList.remove('active');
+  document.getElementById('overlay-backdrop').classList.remove('active');
+  document.body.style.overflow='';
+}
+function toggleAccordion(btn){
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('open');
+}
+function closeAllOverlays(){
+  closeProductModal();
+  closeCart();
+}
+
+/* ─── CART ───────────────────────────────────────────────────── */
+function addToCart(productId, size){
+  if(!size){toast('Please select a size','warn');return;}
+  const p=state.products.find(x=>x.id===productId);
+  if(!p) return;
+  const item={cartId:Date.now(),productId:p.id,name:p.name,brand:p.brand,price:p.price,size,img:p.images[0],aiSize:getAiSize(p)};
+  state.cart.push(item);
+  saveState();
+  updateCartBadge();
+  toast(`${p.name} added to bag 🛍`,'success');
+  closeProductModal();
+  openCart();
+}
+function quickAddToCart(productId){
+  const p=state.products.find(x=>x.id===productId);
+  if(!p) return;
+  const aiSize=getAiSize(p);
+  const size=aiSize||p.sizes[0];
+  addToCart(productId, size);
+}
+function removeFromCart(cartId){
+  state.cart=state.cart.filter(i=>i.cartId!==cartId);
+  saveState();updateCartBadge();renderCartItems();
+}
+function openCart(){
+  document.getElementById('cart-drawer').classList.add('open');
+  document.getElementById('overlay-backdrop').classList.add('active');
+  document.body.style.overflow='hidden';
+  renderCartItems();
+}
+function closeCart(){
+  document.getElementById('cart-drawer').classList.remove('open');
+  document.getElementById('overlay-backdrop').classList.remove('active');
+  document.body.style.overflow='';
+}
+function renderCartItems(){
+  const wrap=document.getElementById('cart-items-wrap');
+  const footer=document.getElementById('cart-footer');
+  const label=document.getElementById('cart-count-label');
+  if(!wrap) return;
+  if(state.cart.length===0){
+    wrap.innerHTML=`<div class="cart-empty"><div class="empty-icon">🛍</div><p>Your bag is empty</p><button class="btn btn-navy" onclick="closeCart();navigate('shop')">Start Shopping</button></div>`;
+    footer.style.display='none';
+    if(label) label.textContent='';
+    return;
+  }
+  if(label) label.textContent=`(${state.cart.length})`;
+  wrap.innerHTML=state.cart.map(item=>{
+    const isMatch=item.aiSize&&item.aiSize===item.size;
+    return `<div class="cart-item">
+      <div class="cart-item-img"><img src="${item.img}" alt="${item.name}" loading="lazy"></div>
+      <div class="cart-item-info">
+        <div class="cart-item-brand">${item.brand}</div>
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-meta">Size: <span class="${isMatch?'ai-match':''}">${item.size}${isMatch?' ✦':''}</span></div>
+        <div class="cart-item-price">${formatPrice(item.price)}</div>
+      </div>
+      <button class="cart-item-del" onclick="removeFromCart(${item.cartId})" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+  const total=state.cart.reduce((s,i)=>s+i.price,0);
+  document.getElementById('cart-total').textContent=formatPrice(total);
+  const misMatch=state.cart.some(i=>i.aiSize&&i.aiSize!==i.size);
+  const warning=document.getElementById('cart-size-warning');
+  if(warning) warning.style.display=misMatch&&state.userProfile.hasScanned?'flex':'none';
+  footer.style.display='block';
+}
+function updateCartBadge(){
+  const badge=document.getElementById('cart-badge');
+  if(badge){badge.textContent=state.cart.length;badge.style.display=state.cart.length>0?'flex':'none';}
+}
+
+/* ─── WISHLIST ────────────────────────────────────────────────── */
+function toggleWishlist(id){
+  const idx=state.wishlist.indexOf(id);
+  if(idx>-1){state.wishlist.splice(idx,1);toast('Removed from Saved');}
+  else{state.wishlist.push(id);toast('Saved to Wishlist ❤','success');}
+  saveState();
+  updateWishlistBadge();
+  // update ph-btn
+  const btn=document.getElementById('ph-wl-'+id);
+  if(btn){btn.classList.toggle('liked');btn.textContent=isWishlisted(id)?'❤':'♡';}
+}
+function updateWishlistBadge(){
+  const badge=document.getElementById('wishlist-badge');
+  if(badge){badge.textContent=state.wishlist.length;badge.style.display=state.wishlist.length>0?'flex':'none';}
+}
+
+/* ─── AI SIZE WIZARD ─────────────────────────────────────────── */
+let scanTimer=null;
+let scanPhase=0;
+let kpAnimating=false;
+
+function openSizeWizard(){
+  state.wizardStep=0;
+  scanPhase=0;
+  kpAnimating=false;
+  renderWizardStep(0);
+  document.getElementById('size-wizard').classList.add('active');
+  document.getElementById('overlay-backdrop').classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function closeSizeWizard(){
+  document.getElementById('size-wizard').classList.remove('active');
+  document.getElementById('overlay-backdrop').classList.remove('active');
+  document.body.style.overflow='';
+  if(scanTimer) clearTimeout(scanTimer);
+}
+function renderWizardStep(step){
+  document.querySelectorAll('.wizard-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('wstep-'+step).classList.add('active');
+  document.querySelectorAll('.wiz-dot').forEach((d,i)=>{d.classList.remove('done','active');if(i<step)d.classList.add('done');if(i===step)d.classList.add('active');});
+}
+function wizardNext(){state.wizardStep++;renderWizardStep(state.wizardStep);}
+function wizardBack(){if(state.wizardStep>0){state.wizardStep--;renderWizardStep(state.wizardStep);}}
+function setScanMode(mode, btn){
+  state.scanMode=mode;
+  document.querySelectorAll('.scan-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('scan-camera-panel').style.display=mode==='camera'?'block':'none';
+  document.getElementById('scan-manual-panel').style.display=mode==='manual'?'block':'none';
+}
+function startScan(){
+  const btn=document.getElementById('scan-capture-btn');
+  const statusTxt=document.getElementById('scan-status-text');
+  const kpContainer=document.getElementById('scan-keypoints');
+  scanPhase=0;
+  const phases=['Position yourself in frame','Front photo captured! ✓ Now turn sideways','Side profile captured! ✓ Processing…','Scan complete — analysing measurements'];
+  function advance(){
+    if(scanPhase>=3){
+      btn.style.display='none';
+      setTimeout(()=>{wizardNext();startProcessing();},600);
+      return;
+    }
+    scanPhase++;
+    statusTxt.textContent=phases[scanPhase];
+    if(scanPhase===1||scanPhase===2){
+      // Place random keypoints
+      kpContainer.innerHTML='';
+      const kps=[[50,15],[50,28],[50,45],[35,30],[65,30],[30,55],[70,55],[40,70],[60,70],[45,85],[55,85]];
+      kps.forEach(([l,t])=>{
+        const kp=document.createElement('div');kp.className='kp';
+        kp.style.left=l+'%';kp.style.top=t+'%';
+        kpContainer.appendChild(kp);
+      });
+    }
+    if(scanPhase<3) scanTimer=setTimeout(advance, scanPhase===1?2000:2500);
+    else scanTimer=setTimeout(advance, 1000);
+  }
+  btn.textContent='Scanning…';
+  scanTimer=setTimeout(advance, 2500);
+}
+function startProcessing(){
+  const steps=['pstep-0','pstep-1','pstep-2','pstep-3','pstep-4'];
+  let i=0;
+  function advP(){
+    if(i>0){document.getElementById(steps[i-1]).classList.remove('current');document.getElementById(steps[i-1]).classList.add('done');document.getElementById(steps[i-1]).querySelector('.p-step-icon').textContent='✓';}
+    if(i<steps.length){document.getElementById(steps[i]).classList.add('current');document.getElementById(steps[i]).querySelector('.p-step-icon').textContent='⏳';i++;setTimeout(advP,700);}
+    else{setTimeout(()=>{computeMeasurements();renderWizardStep(3);},400);}
+  }
+  advP();
+}
+function computeMeasurements(){
+  // If manual mode, read inputs
+  let m={};
+  if(state.scanMode==='manual'){
+    m.height=parseFloat(document.getElementById('m-height').value)||168;
+    m.chest=parseFloat(document.getElementById('m-chest').value)||92;
+    m.waist=parseFloat(document.getElementById('m-waist').value)||76;
+    m.hips=parseFloat(document.getElementById('m-hips').value)||98;
+    m.inseam=parseFloat(document.getElementById('m-inseam').value)||76;
+    m.shoe=parseFloat(document.getElementById('m-shoe').value)||39;
+  } else {
+    // Simulate measurements
+    m={height:168,chest:92,waist:76,hips:98,inseam:76,shoulder:42,neck:37,thigh:56,calf:38,shoe:39};
+  }
+  // Compute clothing sizes
+  function topSize(chest){if(chest<84)return'XS';if(chest<90)return'S';if(chest<98)return'M';if(chest<106)return'L';if(chest<114)return'XL';return'XXL';}
+  function bottomSize(waist){if(waist<66)return'XS';if(waist<72)return'S';if(waist<80)return'M';if(waist<88)return'L';if(waist<96)return'XL';return'XXL';}
+  function shoeEU(eu){return eu?'EU '+eu:'EU 39';}
+  state.userProfile.measurements=m;
+  state.userProfile.brandSizes={
+    'Nike':topSize(m.chest),'Adidas':topSize(m.chest),'Zara':topSize(m.chest),
+    'Jonathan D':bottomSize(m.waist),'Retro Supply':topSize(m.chest+2),
+    'Vans':shoeEU(m.shoe),'Little Drape':'M',
+    '_top':topSize(m.chest),'_bottom':bottomSize(m.waist),'_shoe':shoeEU(m.shoe),
+  };
+  state.userProfile.hasScanned=true;
+  saveState();
+
+  // Render results
+  const keys=[{k:'height',lbl:'Height',u:'cm'},{k:'chest',lbl:'Chest',u:'cm'},{k:'waist',lbl:'Waist',u:'cm'},{k:'hips',lbl:'Hips',u:'cm'},{k:'inseam',lbl:'Inseam',u:'cm'},{k:'shoe',lbl:'Shoe',u:'EU'}];
+  document.getElementById('results-measurements').innerHTML=keys.map(k=>`<div class="mmt-card"><div class="mmt-val">${m[k.k]||'—'}</div><div class="mmt-unit">${k.u}</div><div class="mmt-lbl">${k.lbl}</div></div>`).join('');
+  const brands=['Nike','Adidas','Zara','Vans'];
+  document.getElementById('results-brand-sizes').innerHTML=brands.map(b=>`<div class="brand-sz-card"><div class="brand-sz-name">${b}</div><div class="brand-sz-val">${state.userProfile.brandSizes[b]||'M'}</div></div>`).join('');
+}
+function wizardStep1Next(){
+  if(state.scanMode==='manual'){
+    // Validate at least height & chest
+    const h=document.getElementById('m-height').value;
+    const c=document.getElementById('m-chest').value;
+    if(!h||!c){toast('Please enter at least Height and Chest measurements','warn');return;}
+  }
+  wizardNext();
+  if(state.scanMode==='manual') setTimeout(()=>{startProcessing();},300);
+}
+function showSizeProfileInNav(){navigate('profile');}
+
+/* ─── CHECKOUT ────────────────────────────────────────────────── */
+function openCheckout(){
+  closeCart();
+  state.coStep=0;
+  renderCoStep();
+  document.getElementById('checkout-modal').classList.add('active');
+  document.getElementById('overlay-backdrop').classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function closeCheckout(){
+  document.getElementById('checkout-modal').classList.remove('active');
+  document.getElementById('overlay-backdrop').classList.remove('active');
+  document.body.style.overflow='';
+}
+function renderCoStep(){
+  document.querySelectorAll('.co-step').forEach((s,i)=>s.classList.toggle('active',i===state.coStep));
+  const dots=document.querySelectorAll('.co-dot');
+  dots.forEach((d,i)=>d.classList.toggle('active',i<=state.coStep));
+  if(state.coStep===0){
+    const items=document.getElementById('order-summary-items');
+    if(items){
+      items.innerHTML=state.cart.map(i=>`<div class="order-line-item"><span>${i.name} (${i.size})</span><span>${formatPrice(i.price)}</span></div>`).join('');
+      const total=state.cart.reduce((s,i)=>s+i.price,0);
+      document.getElementById('order-grand-total').textContent=formatPrice(total);
+    }
+  }
+}
+function coNext(){state.coStep++;renderCoStep();}
+function coBack(){state.coStep--;renderCoStep();}
+function formatCard(el){let v=el.value.replace(/\D/g,'').substring(0,16);el.value=v.replace(/(.{4})/g,'$1 ').trim();}
+function placeOrder(){
+  const order={id:'DRP-'+Math.random().toString(36).substr(2,6).toUpperCase(),items:[...state.cart],total:state.cart.reduce((s,i)=>s+i.price,0),date:new Date().toLocaleDateString(),status:'Processing'};
+  state.orders.unshift(order);
+  state.cart=[];
+  saveState();
+  updateCartBadge();
+  document.getElementById('payment-form-wrap').style.display='none';
+  document.getElementById('order-success-wrap').style.display='block';
+  document.getElementById('checkout-title').textContent='Order Confirmed ✓';
+  document.getElementById('tr-confirmed').textContent=new Date().toLocaleString();
+  toast('Order placed successfully! 🎉','success');
+}
+
+/* ─── PROFILE VIEW ───────────────────────────────────────────── */
+function renderProfileView(){
+  switchProfileTab('size', document.querySelector('.ptab'));
+}
+function switchProfileTab(tab, btn){
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.ptab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='size') renderSizeTab();
+  if(tab==='orders') renderOrdersTab();
+  if(tab==='wishlist') renderWishlistTab();
+}
+function renderSizeTab(){
+  const u=state.userProfile;
+  document.getElementById('no-size-profile').style.display=u.hasScanned?'none':'block';
+  document.getElementById('has-size-profile').style.display=u.hasScanned?'block':'none';
+  if(u.hasScanned){
+    const m=u.measurements;
+    const keys=[{k:'height',lbl:'Height',u:'cm'},{k:'chest',lbl:'Chest',u:'cm'},{k:'waist',lbl:'Waist',u:'cm'},{k:'hips',lbl:'Hips',u:'cm'},{k:'inseam',lbl:'Inseam',u:'cm'}];
+    document.getElementById('measurements-display').innerHTML=keys.map(k=>`<div class="m-item"><div class="m-val">${m[k.k]||'—'}</div><div class="m-unit">${k.u}</div><div class="m-lbl">${k.lbl}</div></div>`).join('');
+    const brands=Object.keys(u.brandSizes).filter(k=>!k.startsWith('_'));
+    document.getElementById('brand-sizes-tbody').innerHTML=brands.map(b=>`<tr><td><strong>${b}</strong></td><td><span class="sz-tag">${u.brandSizes[b]||'M'}</span></td><td><span class="sz-tag">${u.brandSizes['_bottom']||'M'}</span></td><td><span class="sz-tag">${u.brandSizes['_shoe']||'EU 39'}</span></td><td><span style="color:var(--success);font-weight:600">98%</span></td></tr>`).join('');
+  }
+}
+function renderOrdersTab(){
+  const el=document.getElementById('orders-list');
+  if(!el) return;
+  if(state.orders.length===0){el.innerHTML=`<div style="text-align:center;padding:48px 0"><div style="font-size:3.5rem;margin-bottom:16px">📦</div><p style="color:var(--text-soft);font-size:15px">No orders yet</p></div>`;return;}
+  el.innerHTML=state.orders.map(o=>{
+    const firstItem=o.items[0];
+    const statusClass={'Delivered':'s-delivered','Shipped':'s-shipped','Processing':'s-processing'}[o.status]||'s-processing';
+    return `<div class="order-card">
+      <img class="order-card-img" src="${firstItem?.img||''}" alt="">
+      <div class="order-card-info">
+        <div class="order-card-name">Order ${o.id}</div>
+        <div class="order-card-meta">${o.items.length} item${o.items.length!==1?'s':''} · ${o.date} · ${formatPrice(o.total)}</div>
+      </div>
+      <span class="order-status ${statusClass}">${o.status}</span>
+    </div>`;
+  }).join('');
+}
+function renderWishlistTab(){
+  const grid=document.getElementById('wishlist-grid');
+  const empty=document.getElementById('wishlist-empty');
+  const items=state.products.filter(p=>state.wishlist.includes(p.id));
+  if(items.length===0){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.innerHTML=items.map(p=>productCard(p)).join('');
+}
+function togglePref(el,pref){el.classList.toggle('selected');}
+function savePrefsTap(){
+  const prefs=[...document.querySelectorAll('.pref-card.selected')].map(el=>el.querySelector('.pref-label').textContent);
+  state.userProfile.stylePrefs=prefs;
+  saveState();
+  toast('Style preferences saved!','success');
+}
+
+/* ─── ADMIN ───────────────────────────────────────────────────── */
+function renderAdminView(){
+  switchAdminPage('dashboard', document.querySelector('.admin-nav-item'));
+}
+function switchAdminPage(page, btn){
+  document.querySelectorAll('.admin-nav-item').forEach(n=>n.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('admin-page-'+page).classList.add('active');
+  if(page==='dashboard') renderAdminDashboard();
+  if(page==='products') renderAdminProductsTable();
+  if(page==='orders') renderAdminOrders();
+}
+function renderAdminDashboard(){
+  const statsEl=document.getElementById('admin-stats');
+  const totalRevenue=state.orders.reduce((s,o)=>s+o.total,0);
+  if(statsEl) statsEl.innerHTML=[
+    {lbl:'Total Products',val:state.products.length,change:'↑ 3 this week'},
+    {lbl:'Total Orders',val:state.orders.length,change:state.orders.length>0?'↑ '+state.orders.length+' total':'No orders yet'},
+    {lbl:'Revenue',val:formatPrice(totalRevenue),change:'From completed orders'},
+    {lbl:'Cart Items',val:state.cart.length,change:'Currently in carts'},
+  ].map(s=>`<div class="stat-card"><div class="stat-lbl">${s.lbl}</div><div class="stat-val">${s.val}</div><div class="stat-change">${s.change}</div></div>`).join('');
+  const recent=document.getElementById('admin-recent-products');
+  if(recent) recent.innerHTML=state.products.slice(0,5).map(p=>`<tr><td><img class="tbl-img" src="${p.images[0]}" alt="${p.name}" loading="lazy"></td><td><strong>${p.name}</strong></td><td>${p.brand}</td><td>${formatPrice(p.price)}</td><td><span class="stock-badge ${p.inStock?'stock-in':'stock-out'}">${p.inStock?'In Stock':'Out'}</span></td></tr>`).join('');
+}
+function renderAdminProductsTable(){
+  const search=(document.getElementById('admin-product-search')?.value||'').toLowerCase();
+  let prods=state.products;
+  if(search) prods=prods.filter(p=>p.name.toLowerCase().includes(search)||p.brand.toLowerCase().includes(search)||p.category.toLowerCase().includes(search));
+  document.getElementById('admin-product-count').textContent=prods.length+' products';
+  document.getElementById('admin-products-tbody').innerHTML=prods.map(p=>`
+    <tr>
+      <td><img class="tbl-img" src="${p.images[0]}" alt="${p.name}" loading="lazy"></td>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.brand}</td>
+      <td>${p.category}</td>
+      <td>${formatPrice(p.price)}</td>
+      <td><span class="stock-badge ${p.inStock?'stock-in':'stock-out'}">${p.inStock?'In Stock':'Out'}</span></td>
+      <td><div class="tbl-actions">
+        <button class="tbl-btn tbl-btn-edit" onclick="openProductForm(${p.id})">Edit</button>
+        <button class="tbl-btn tbl-btn-del" onclick="confirmDelete(${p.id})">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+function renderAdminOrders(){
+  const tbody=document.getElementById('admin-orders-tbody');
+  if(!tbody) return;
+  if(state.orders.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-soft)">No orders yet</td></tr>';return;}
+  tbody.innerHTML=state.orders.map(o=>o.items.map(i=>`<tr><td><strong>${o.id}</strong></td><td>${i.name}</td><td>${i.size}</td><td>${formatPrice(i.price)}</td><td><span class="stock-badge s-processing">${o.status}</span></td></tr>`).join('')).join('');
+}
+
+/* ─── ADMIN CRUD ─────────────────────────────────────────────── */
+function openProductForm(id){
+  document.getElementById('admin-modal').classList.add('active');
+  document.getElementById('overlay-backdrop').classList.add('active');
+  document.body.style.overflow='hidden';
+  if(id){
+    const p=state.products.find(x=>x.id===id);
+    if(!p) return;
+    document.getElementById('admin-modal-title').textContent='Edit Product';
+    document.getElementById('pf-id').value=p.id;
+    document.getElementById('pf-name').value=p.name;
+    document.getElementById('pf-brand').value=p.brand;
+    document.getElementById('pf-category').value=p.category;
+    document.getElementById('pf-gender').value=p.gender||'Unisex';
+    document.getElementById('pf-price').value=p.price;
+    document.getElementById('pf-orig-price').value=p.originalPrice||'';
+    document.getElementById('pf-image').value=p.images[0];
+    document.getElementById('pf-images-extra').value=p.images.slice(1).join(', ');
+    document.getElementById('pf-sizes').value=p.sizes.join(', ');
+    document.getElementById('pf-colors').value=p.colors.join(', ');
+    document.getElementById('pf-description').value=p.description||'';
+    document.getElementById('pf-fabric').value=p.fabric||'';
+    document.getElementById('pf-rating').value=p.rating||4.0;
+    document.getElementById('pf-instock').checked=p.inStock!==false;
+    document.getElementById('pf-trending').checked=p.tags&&p.tags.includes('trending');
+  } else {
+    document.getElementById('admin-modal-title').textContent='Add Product';
+    document.getElementById('product-form').reset();
+    document.getElementById('pf-id').value='';
+    document.getElementById('pf-instock').checked=true;
+  }
+}
+function closeAdminModal(){
+  document.getElementById('admin-modal').classList.remove('active');
+  document.getElementById('overlay-backdrop').classList.remove('active');
+  document.body.style.overflow='';
+}
+function saveProduct(e){
+  e.preventDefault();
+  const id=parseInt(document.getElementById('pf-id').value)||null;
+  const tags=[];
+  if(document.getElementById('pf-trending').checked) tags.push('trending');
+  const extraImgs=document.getElementById('pf-images-extra').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const p={
+    id:id||Date.now(),
+    name:document.getElementById('pf-name').value.trim(),
+    brand:document.getElementById('pf-brand').value.trim(),
+    category:document.getElementById('pf-category').value,
+    gender:document.getElementById('pf-gender').value,
+    price:parseFloat(document.getElementById('pf-price').value),
+    originalPrice:parseFloat(document.getElementById('pf-orig-price').value)||null,
+    images:[document.getElementById('pf-image').value.trim(),...extraImgs],
+    sizes:document.getElementById('pf-sizes').value.split(',').map(s=>s.trim()).filter(Boolean),
+    colors:document.getElementById('pf-colors').value.split(',').map(s=>s.trim()).filter(Boolean),
+    description:document.getElementById('pf-description').value.trim(),
+    fabric:document.getElementById('pf-fabric').value.trim(),
+    rating:parseFloat(document.getElementById('pf-rating').value)||4.0,
+    reviews:Math.floor(Math.random()*200)+20,
+    inStock:document.getElementById('pf-instock').checked,
+    tags,
+  };
+  if(id){
+    const idx=state.products.findIndex(x=>x.id===id);
+    if(idx>-1) state.products[idx]=p;
+    toast('Product updated ✓','success');
+  } else {
+    state.products.unshift(p);
+    toast('Product added ✓','success');
+  }
+  saveState();
+  closeAdminModal();
+  renderAdminProductsTable();
+  renderAdminDashboard();
+}
+let _confirmCallback=null;
+function confirmDelete(id){
+  const p=state.products.find(x=>x.id===id);
+  document.getElementById('confirm-title').textContent='Delete Product?';
+  document.getElementById('confirm-msg').textContent=`Delete "${p?.name||'this product'}"? This action cannot be undone.`;
+  _confirmCallback=()=>{deleteProduct(id);};
+  document.getElementById('confirm-ok-btn').onclick=()=>{_confirmCallback&&_confirmCallback();closeConfirm();};
+  document.getElementById('confirm-dialog').classList.add('active');
+}
+function deleteProduct(id){
+  state.products=state.products.filter(p=>p.id!==id);
+  saveState();
+  renderAdminProductsTable();
+  renderAdminDashboard();
+  toast('Product deleted','warn');
+}
+function closeConfirm(){document.getElementById('confirm-dialog').classList.remove('active');}
+
+/* ─── TOAST ─────────────────────────────────────────────────── */
+function toast(msg, type=''){
+  const container=document.getElementById('toast-container');
+  const el=document.createElement('div');
+  el.className='toast'+(type?' '+type:'');
+  const icons={success:'✓',error:'✕',warn:'⚠','':''};
+  el.innerHTML=(icons[type]?`<span>${icons[type]}</span>`:'')+`<span>${msg}</span>`;
+  container.appendChild(el);
+  setTimeout(()=>{el.style.animation='toastOut 280ms var(--ease) forwards';setTimeout(()=>el.remove(),280);},3200);
+}
+
+/* ─── SEARCH ──────────────────────────────────────────────────── */
+document.getElementById('search-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    state.filters.search=this.value.trim().toLowerCase();
+    navigate('shop');
+    applyFilters();
+  }
+});
+document.getElementById('search-submit-btn').addEventListener('click',function(){
+  const v=document.getElementById('search-input').value.trim().toLowerCase();
+  state.filters.search=v;
+  navigate('shop');
+  applyFilters();
+});
+document.getElementById('vs-trigger-btn').addEventListener('click',function(){navigate('visual-search');});
+document.getElementById('cart-trigger-btn').addEventListener('click',openCart);
+document.getElementById('wishlist-btn').addEventListener('click',function(){navigate('profile');switchProfileTab('wishlist',document.querySelectorAll('.ptab')[2]);});
+document.getElementById('vs-upload-zone').addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
+document.getElementById('vs-upload-zone').addEventListener('dragleave',function(){this.classList.remove('drag-over');});
+document.getElementById('vs-upload-zone').addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');if(e.dataTransfer.files.length){toast('📷 Analysing image…');setTimeout(()=>runVisualSearch(0),1200);}});
+document.getElementById('vs-upload-zone').addEventListener('click',function(e){if(e.target.tagName!=='BUTTON'&&e.target.tagName!=='INPUT')document.getElementById('vs-file-input').click();});
+
+/* ─── INIT ────────────────────────────────────────────────────── */
+(function init(){
+  loadState();
+  renderHomeView();
+  updateCartBadge();
+  updateWishlistBadge();
+  // restore style prefs
+  if(state.userProfile.stylePrefs&&state.userProfile.stylePrefs.length){
+    document.querySelectorAll('.pref-card').forEach(el=>{
+      const lbl=el.querySelector('.pref-label').textContent;
+      if(state.userProfile.stylePrefs.includes(lbl)) el.classList.add('selected');
+    });
+  }
+  console.log('✦ drape SPA initialised — '+state.products.length+' products loaded');
+})();
+</script>
+</body>
+</html>
