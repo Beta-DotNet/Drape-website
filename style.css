@@ -493,7 +493,7 @@ main {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: #0f172a;
+    background: none;
     color: #ffffff;
     display: inline-flex;
     align-items: center;
@@ -598,7 +598,7 @@ main {
 
 .product-name {
     font-size: 0.96rem;
-    font-weight: 700;
+    font-weight: 500;
     color: #0f172a;
     margin-bottom: 14px;
 }
@@ -611,7 +611,7 @@ main {
 }
 
 .price {
-    font-size: 1rem;
+    font-size: 2rem;
     font-weight: 800;
     color: #1a3a52;
 }
@@ -631,7 +631,8 @@ main {
 }
 
 .icon-btn:hover {
-    background: #e2e8f0;
+    background: #0f172a;
+    color: white;
 }
 
 .rating {
