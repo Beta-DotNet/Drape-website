@@ -143,7 +143,7 @@ function ChatContent() {
           setOpponentTyping(payload.payload.isTyping);
         }
       })
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         setConnected(status === "SUBSCRIBED");
       });
 

@@ -263,6 +263,428 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 }
 
 /* ============================================================
+   Admin products polish
+   ============================================================ */
+.admin-products-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(16px, 2vw, 28px);
+  background: var(--bg);
+  min-height: calc(100vh - var(--header-h));
+}
+
+.admin-products-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.admin-products-hero-card {
+  background: linear-gradient(135deg, rgba(26, 58, 82, 0.97), rgba(18, 42, 62, 0.92));
+  border-radius: 28px;
+  padding: clamp(20px, 2vw, 26px);
+  box-shadow: var(--sh-card);
+  border: 1px solid rgba(249, 211, 67, 0.17);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.admin-page-title {
+  margin: 6px 0 8px;
+  font-size: clamp(1.8rem, 3vw, 2.1rem);
+  color: #fff;
+}
+
+.admin-page-copy {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 700px;
+}
+
+.admin-products-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-pill-success {
+  background: rgba(74, 222, 128, 0.14);
+  color: #bbf7d0;
+}
+
+.admin-pill-info {
+  background: rgba(59, 130, 246, 0.14);
+  color: #bfdbfe;
+}
+
+.admin-pill-neutral {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.admin-cta-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, var(--gold), #ffd96b);
+  color: var(--navy-dark);
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(249, 211, 67, 0.22);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+  white-space: nowrap;
+}
+
+.admin-cta-button:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.02);
+}
+
+.admin-cta-button-inline {
+  min-width: 160px;
+}
+
+.admin-products-search-panel {
+  margin-bottom: 18px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 18px;
+  border: 1px solid rgba(26, 58, 82, 0.08);
+  box-shadow: var(--sh-sm);
+}
+
+.admin-search-layout {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.admin-search-field {
+  flex: 1;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-search-label {
+  color: var(--text-mid);
+  font-weight: 700;
+}
+
+.admin-search-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.admin-search-input:focus {
+  border-color: rgba(249, 211, 67, 0.7);
+  box-shadow: 0 0 0 3px rgba(249, 211, 67, 0.16);
+}
+
+.admin-search-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-count-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(26, 58, 82, 0.08);
+  color: var(--navy-dark);
+  font-weight: 800;
+}
+
+.admin-secondary-button {
+  border-radius: 999px;
+  border: 1px solid rgba(26, 58, 82, 0.18);
+  background: #fff;
+  color: var(--navy-dark);
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.admin-secondary-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.admin-empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-soft);
+  border-radius: 24px;
+  border: 1px dashed rgba(26, 58, 82, 0.14);
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  box-shadow: var(--sh-sm);
+}
+
+.admin-empty-state-soft {
+  background: linear-gradient(180deg, #fff, rgba(26, 58, 82, 0.03));
+}
+
+.admin-empty-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy-dark);
+}
+
+.admin-empty-copy {
+  margin: 10px 0 18px;
+}
+
+.admin-empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-products-table-wrap {
+  overflow-x: auto;
+  border-radius: 24px;
+  border: 1px solid rgba(26, 58, 82, 0.08);
+  background: #fff;
+  box-shadow: var(--sh-sm);
+}
+
+.admin-products-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 900px;
+}
+
+.admin-products-table thead tr {
+  background: linear-gradient(180deg, rgba(26, 58, 82, 0.96), rgba(18, 42, 62, 0.92));
+  color: #fff;
+}
+
+.admin-products-table th,
+.admin-products-table td {
+  padding: 14px 12px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.admin-products-table th {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+}
+
+.admin-products-table tbody tr {
+  transition: background 180ms ease;
+}
+
+.admin-products-table tbody tr:hover {
+  background: rgba(26, 58, 82, 0.03);
+}
+
+.admin-product-cell {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-product-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.admin-product-thumb-fallback {
+  background: linear-gradient(135deg, rgba(249, 211, 67, 0.24), rgba(59, 130, 246, 0.16));
+  display: grid;
+  place-items: center;
+  color: var(--navy-dark);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.admin-product-name {
+  font-weight: 800;
+  color: var(--navy-dark);
+}
+
+.admin-product-meta {
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.admin-stock-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-stock-badge-success {
+  background: rgba(74, 222, 128, 0.14);
+  color: #0f7a48;
+}
+
+.admin-stock-badge-danger {
+  background: rgba(248, 113, 113, 0.16);
+  color: #b42318;
+}
+
+.admin-price-block {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-price-value {
+  font-weight: 800;
+  color: var(--navy-dark);
+}
+
+.admin-price-meta {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.admin-action-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.76);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 40;
+}
+
+.admin-modal-card {
+  width: min(960px, 100%);
+  background: #fff;
+  border-radius: 28px;
+  border: 1px solid rgba(26, 58, 82, 0.08);
+  padding: 20px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.34);
+}
+
+.admin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-modal-title {
+  margin: 8px 0 6px;
+  font-size: 24px;
+  color: var(--navy-dark);
+}
+
+.admin-modal-copy {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.admin-modal-close {
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.admin-products-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.admin-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .admin-products-header {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-cta-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-products-shell {
+    padding: 14px;
+  }
+
+  .admin-products-search-panel,
+  .admin-modal-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .admin-page-title {
+    font-size: 1.6rem;
+  }
+
+  .admin-products-table {
+    min-width: 760px;
+  }
+
+  .admin-products-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
    10. TRENDING / PRODUCT GRID
    ============================================================ */
 .trending-section{padding:var(--s-lg) var(--s-xl) var(--s-xl);background:var(--bg)}

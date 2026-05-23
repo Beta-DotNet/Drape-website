@@ -171,10 +171,12 @@ function AdminChatContent() {
           .order("created_at", { ascending: true });
 
         if (error) throw error;
-        setMessages(data || []);
+
+        const loadedMessages = (data as ChatMessage[] | null) || [];
+        setMessages(loadedMessages);
 
         // Mark all messages as read
-        const unreadIds = (data || [])
+        const unreadIds = loadedMessages
           .filter((m) => m.sender_id === selectedCustomerId && m.status !== "read")
           .map((m) => m.id);
 

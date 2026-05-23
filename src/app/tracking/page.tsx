@@ -101,7 +101,7 @@ function TrackingContent() {
           }
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         setConnected(status === "SUBSCRIBED");
       });
 

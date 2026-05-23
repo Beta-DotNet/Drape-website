@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { DEFAULT_PRODUCTS } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
 type ProductRow = {
@@ -37,6 +38,83 @@ function csvToArray(input: string): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+const LOCAL_PRODUCTS_STORAGE_KEY = "drape-admin-products";
+const isSupabaseConfigured =
+  typeof process !== "undefined" &&
+  typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0 &&
+  !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.startsWith("sb_secret_");
+
+function mapDefaultProductToRow(product: (typeof DEFAULT_PRODUCTS)[number]): ProductRow {
+  return {
+    id: product.id,
+    name: product.name,
+    brand: product.brand,
+    category: product.category,
+    gender: product.gender,
+    price: product.price,
+    original_price: product.originalPrice,
+    images: product.images,
+    colors: product.colors,
+    sizes: product.sizes,
+    in_stock: product.inStock,
+    rating: product.rating,
+    reviews: product.reviews,
+    fabric: product.fabric,
+    care: product.care,
+    description: product.description,
+    tags: product.tags,
+  };
+}
+
+function seedLocalProducts(): ProductRow[] {
+  const seeded = DEFAULT_PRODUCTS.map(mapDefaultProductToRow);
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(LOCAL_PRODUCTS_STORAGE_KEY, JSON.stringify(seeded));
+  }
+  return seeded;
+}
+
+function readLocalProducts(): ProductRow[] {
+  if (typeof window === "undefined") {
+    return seedLocalProducts();
+  }
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_PRODUCTS_STORAGE_KEY);
+    if (!raw) return seedLocalProducts();
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed as ProductRow[];
+    }
+  } catch {
+    // ignore and fall back to seeded data
+  }
+
+  return seedLocalProducts();
+}
+
+function persistLocalProducts(products: ProductRow[]) {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(LOCAL_PRODUCTS_STORAGE_KEY, JSON.stringify(products));
+  }
+}
+
+function getNextLocalProductId(products: ProductRow[]) {
+  return products.reduce((max, product) => Math.max(max, product.id), 0) + 1;
+}
+
+type NoticeTone = "success" | "error" | "info";
+
+type NoticeState = {
+  tone: NoticeTone;
+  text: string;
+} | null;
+
+function formatCurrency(value: number) {
+  return value.toLocaleString("en-ZA", { style: "currency", currency: "ZAR" });
 }
 
 type ProductFormState = {
@@ -78,6 +156,7 @@ function AdminProductsContent() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<NoticeState>(null);
 
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [filter, setFilter] = useState<string>("");
@@ -89,6 +168,19 @@ function AdminProductsContent() {
   const [form, setForm] = useState<ProductFormState>(EmptyForm());
 
   const lastLoadedAtRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!createOpen && !editOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeModals();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [createOpen, editOpen]);
 
   const filteredProducts = useMemo(() => {
     const q = filter.trim().toLowerCase();
@@ -102,7 +194,16 @@ function AdminProductsContent() {
   const loadProducts = async () => {
     setLoading(true);
     setError(null);
+
     try {
+      if (!isSupabaseConfigured) {
+        const localProducts = readLocalProducts();
+        setProducts(localProducts);
+        lastLoadedAtRef.current = Date.now();
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("products")
         .select("*")
@@ -124,6 +225,8 @@ function AdminProductsContent() {
   }, []);
 
   const openCreate = () => {
+    setNotice(null);
+    setError(null);
     setForm(EmptyForm());
     setActiveId(null);
     setEditOpen(false);
@@ -131,6 +234,8 @@ function AdminProductsContent() {
   };
 
   const openEdit = (p: ProductRow) => {
+    setNotice(null);
+    setError(null);
     setActiveId(p.id);
     setCreateOpen(false);
     setEditOpen(true);
@@ -181,7 +286,40 @@ function AdminProductsContent() {
 
     setSaving(true);
     setError(null);
+
     try {
+      if (!isSupabaseConfigured) {
+        setProducts((prev) => {
+          const nextProduct: ProductRow = {
+            id: getNextLocalProductId(prev),
+            name: form.name.trim(),
+            brand: form.brand.trim(),
+            category: form.category.trim(),
+            gender: form.gender.trim() || "Unisex",
+            price: Number(form.price),
+            original_price: form.original_price.trim() ? Number(form.original_price) : null,
+            images: csvToArray(form.imagesCSV),
+            colors: csvToArray(form.colorCSV),
+            sizes: csvToArray(form.sizeCSV),
+            in_stock: form.in_stock,
+            rating: null,
+            reviews: null,
+            fabric: form.fabric.trim() || null,
+            care: form.care.trim() || null,
+            description: form.description.trim() || null,
+            tags: [],
+          };
+
+          const nextProducts = [nextProduct, ...prev];
+          persistLocalProducts(nextProducts);
+          return nextProducts;
+        });
+
+        setNotice({ tone: "success", text: "Product created successfully." });
+        closeModals();
+        return;
+      }
+
       const payload: Partial<ProductRow> = {
         name: form.name.trim(),
         brand: form.brand.trim(),
@@ -196,15 +334,16 @@ function AdminProductsContent() {
         fabric: form.fabric.trim() || null,
         care: form.care.trim() || null,
         description: form.description.trim() || null,
-        // rating/reviews/tags can be left to defaults
       };
 
       const { data, error } = await supabase.from("products").insert(payload).select("*").single();
       if (error) throw error;
 
       setProducts((prev) => [data as ProductRow, ...prev]);
+      setNotice({ tone: "success", text: "Product created successfully." });
       closeModals();
     } catch (e: any) {
+      setNotice(null);
       setError(e?.message || "Failed to create product");
     } finally {
       setSaving(false);
@@ -222,7 +361,40 @@ function AdminProductsContent() {
 
     setSaving(true);
     setError(null);
+
     try {
+      if (!isSupabaseConfigured) {
+        setProducts((prev) => {
+          const updatedProducts = prev.map((product) =>
+            product.id === activeId
+              ? {
+                  ...product,
+                  name: form.name.trim(),
+                  brand: form.brand.trim(),
+                  category: form.category.trim(),
+                  gender: form.gender.trim() || "Unisex",
+                  price: Number(form.price),
+                  original_price: form.original_price.trim() ? Number(form.original_price) : null,
+                  images: csvToArray(form.imagesCSV),
+                  colors: csvToArray(form.colorCSV),
+                  sizes: csvToArray(form.sizeCSV),
+                  in_stock: form.in_stock,
+                  fabric: form.fabric.trim() || null,
+                  care: form.care.trim() || null,
+                  description: form.description.trim() || null,
+                }
+              : product
+          );
+
+          persistLocalProducts(updatedProducts);
+          return updatedProducts;
+        });
+
+        setNotice({ tone: "success", text: "Product updated successfully." });
+        closeModals();
+        return;
+      }
+
       const payload: Partial<ProductRow> = {
         name: form.name.trim(),
         brand: form.brand.trim(),
@@ -249,8 +421,10 @@ function AdminProductsContent() {
       if (error) throw error;
 
       setProducts((prev) => prev.map((p) => (p.id === activeId ? (data as ProductRow) : p)));
+      setNotice({ tone: "success", text: "Product updated successfully." });
       closeModals();
     } catch (e: any) {
+      setNotice(null);
       setError(e?.message || "Failed to update product");
     } finally {
       setSaving(false);
@@ -263,11 +437,25 @@ function AdminProductsContent() {
 
     setDeletingId(id);
     setError(null);
+    setNotice(null);
+
     try {
+      if (!isSupabaseConfigured) {
+        setProducts((prev) => {
+          const nextProducts = prev.filter((product) => product.id !== id);
+          persistLocalProducts(nextProducts);
+          return nextProducts;
+        });
+        setNotice({ tone: "success", text: "Product deleted successfully." });
+        return;
+      }
+
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
       setProducts((prev) => prev.filter((p) => p.id !== id));
+      setNotice({ tone: "success", text: "Product deleted successfully." });
     } catch (e: any) {
+      setNotice(null);
       setError(e?.message || "Failed to delete product");
     } finally {
       setDeletingId(null);
@@ -275,17 +463,366 @@ function AdminProductsContent() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 1200,
-        margin: "0 auto",
-        padding: 20,
-        minHeight: "calc(100vh - var(--header-h))",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--gold)" }}>
-            Admin
+    <div className="admin-products-shell">
+      <div className="admin-products-header">
+        <div className="admin-products-hero-card">
+          <div>
+            <div className="admin-kicker">Admin</div>
+            <h1 className="admin-page-title">Products</h1>
+            <p className="admin-page-copy">
+              Manage your catalog, pricing, and inventory from one clear overview.
+            </p>
           </div>
-          <h1 style={{ margin
+
+          <div className="admin-products-stats">
+            <span className="admin-pill admin-pill-success">
+              {isSupabaseConfigured ? "Supabase connected" : "Offline storage mode"}
+            </span>
+            <span className="admin-pill admin-pill-info">
+              {products.length} products in view
+            </span>
+            <span className="admin-pill admin-pill-neutral">
+              {products.filter((product) => product.in_stock).length} in stock
+            </span>
+          </div>
+        </div>
+
+        <button type="button" onClick={openCreate} className="admin-cta-button">
+          + Add product
+        </button>
+      </div>
+
+      <div className="admin-products-search-panel">
+        <div className="admin-search-layout">
+          <label className="admin-search-field">
+            <span className="admin-search-label">Search products</span>
+            <input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Search by name, brand, category, or ID"
+              className="admin-search-input"
+            />
+          </label>
+          <div className="admin-search-actions">
+            <span className="admin-count-pill">
+              {filteredProducts.length} product{filteredProducts.length === 1 ? "" : "s"}
+            </span>
+            {filter.trim() ? (
+              <button type="button" onClick={() => setFilter("")} className="admin-secondary-button">
+                Clear search
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      {error ? (
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 12,
+            padding: 12,
+            background: "rgba(248, 113, 113, 0.14)",
+            color: "#fecaca",
+          }}
+        >
+          {error}
+        </div>
+      ) : null}
+
+      {notice ? (
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 12,
+            padding: 12,
+            background:
+              notice.tone === "success"
+                ? "rgba(74, 222, 128, 0.14)"
+                : notice.tone === "info"
+                  ? "rgba(59, 130, 246, 0.14)"
+                  : "rgba(248, 113, 113, 0.14)",
+            color: notice.tone === "success" ? "#bbf7d0" : notice.tone === "info" ? "#bfdbfe" : "#fecaca",
+          }}
+        >
+          {notice.text}
+        </div>
+      ) : null}
+
+      {loading ? (
+        <div className="admin-empty-state">Loading products…</div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="admin-empty-state admin-empty-state-soft">
+          <div className="admin-empty-title">No products match your search.</div>
+          <p className="admin-empty-copy">
+            Try a different keyword or add a new product to get started.
+          </p>
+          <div className="admin-empty-actions">
+            {filter.trim() ? (
+              <button type="button" onClick={() => setFilter("")} className="admin-secondary-button">
+                Clear search
+              </button>
+            ) : null}
+            <button type="button" onClick={openCreate} className="admin-cta-button admin-cta-button-inline">
+              + Add product
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="admin-products-table-wrap">
+          <table className="admin-products-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Product</th>
+                <th>Brand</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Price</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product) => (
+                <tr key={product.id}>
+                  <td>{product.id}</td>
+                  <td>
+                    <div className="admin-product-cell">
+                      {product.images?.[0] ? (
+                        <img src={product.images[0]} alt={product.name} className="admin-product-thumb" />
+                      ) : (
+                        <div className="admin-product-thumb admin-product-thumb-fallback">∎</div>
+                      )}
+                      <div>
+                        <div className="admin-product-name">{product.name}</div>
+                        <div className="admin-product-meta">{product.gender}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{product.brand}</td>
+                  <td>{product.category}</td>
+                  <td>
+                    <span className={product.in_stock ? "admin-stock-badge admin-stock-badge-success" : "admin-stock-badge admin-stock-badge-danger"}>
+                      {product.in_stock ? "In stock" : "Out of stock"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="admin-price-block">
+                      <div className="admin-price-value">{formatCurrency(product.price)}</div>
+                      {product.original_price ? (
+                        <div className="admin-price-meta">Was {formatCurrency(product.original_price)}</div>
+                      ) : null}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="admin-action-row">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(product)}
+                        disabled={deletingId !== null}
+                        className="admin-secondary-button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteProduct(product.id)}
+                        disabled={deletingId === product.id}
+                        style={{
+                          borderRadius: 999,
+                          border: 0,
+                          background: "rgba(248, 113, 113, 0.18)",
+                          color: "#fecaca",
+                          padding: "8px 12px",
+                          cursor: deletingId === product.id ? "wait" : "pointer",
+                        }}
+                      >
+                        {deletingId === product.id ? "Deleting…" : "Delete"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {(createOpen || editOpen) ? (
+        <div className="admin-modal-backdrop" onClick={closeModals}>
+          <div className="admin-modal-card" onClick={(event) => event.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <div className="admin-kicker">{editOpen ? "Edit product" : "Create product"}</div>
+                <h2 className="admin-modal-title">{editOpen ? "Update product details" : "Add a new product"}</h2>
+                <p className="admin-modal-copy">
+                  {editOpen
+                    ? "Update pricing, stock, and imagery for the selected product."
+                    : "Add a product and use comma-separated values for sizes, colors, and image URLs."}
+                </p>
+              </div>
+              <button type="button" onClick={closeModals} className="admin-modal-close">
+                ✕
+              </button>
+            </div>
+
+            <div className="admin-products-form-grid">
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Name</span>
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                  required
+                  placeholder="e.g. Weekend bomber"
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Brand</span>
+                <input
+                  value={form.brand}
+                  onChange={(e) => setForm((prev) => ({ ...prev, brand: e.target.value }))}
+                  required
+                  placeholder="e.g. Drape Studio"
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Category</span>
+                <input
+                  value={form.category}
+                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                  required
+                  placeholder="e.g. Outerwear"
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Gender</span>
+                <input
+                  value={form.gender}
+                  onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
+                  placeholder="e.g. Unisex"
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Price</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={form.price}
+                  onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+                  required
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Original price</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={form.original_price}
+                  onChange={(e) => setForm((prev) => ({ ...prev, original_price: e.target.value }))}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Sizes</span>
+                <input
+                  value={form.sizeCSV}
+                  onChange={(e) => setForm((prev) => ({ ...prev, sizeCSV: e.target.value }))}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Colors</span>
+                <input
+                  value={form.colorCSV}
+                  onChange={(e) => setForm((prev) => ({ ...prev, colorCSV: e.target.value }))}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Images</span>
+                <input
+                  value={form.imagesCSV}
+                  onChange={(e) => setForm((prev) => ({ ...prev, imagesCSV: e.target.value }))}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Fabric</span>
+                <input
+                  value={form.fabric}
+                  onChange={(e) => setForm((prev) => ({ ...prev, fabric: e.target.value }))}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8 }}>
+                <span>Care</span>
+                <input
+                  value={form.care}
+                  onChange={(e) => setForm((prev) => ({ ...prev, care: e.target.value }))}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={{ display: "grid", gap: 8, gridColumn: "1 / -1" }}>
+                <span>Description</span>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                  style={{ ...inputStyle, resize: "vertical" }}
+                />
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, gridColumn: "1 / -1" }}>
+                <input
+                  type="checkbox"
+                  checked={form.in_stock}
+                  onChange={(e) => setForm((prev) => ({ ...prev, in_stock: e.target.checked }))}
+                />
+                <span>In stock</span>
+              </label>
+            </div>
+
+            <div className="admin-modal-actions">
+              <button type="button" onClick={closeModals} className="admin-secondary-button">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={editOpen ? submitEdit : submitCreate}
+                disabled={saving}
+                className="admin-cta-button admin-cta-button-inline"
+              >
+                {saving ? "Saving…" : editOpen ? "Save changes" : "Create product"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  borderRadius: 14,
+  border: "1px solid var(--border)",
+  background: "#f8fafc",
+  color: "var(--text)",
+  padding: "12px 14px",
+};
+
+export default function AdminProductsPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "80px", textAlign: "center" }}>Loading Products…</div>}>
+      <AdminProductsContent />
+    </Suspense>
+  );
+}
