@@ -201,7 +201,8 @@ function RiderDashboardContent() {
       (err) => {
         console.warn("GPS tracking accuracy issues:", err);
       },
-      { enableHighAccuracy: true, distanceFilter: 10 }
+      // distanceFilter is a React Native option; not supported by DOM Geolocation types.
+      { enableHighAccuracy: true }
     );
   };
 

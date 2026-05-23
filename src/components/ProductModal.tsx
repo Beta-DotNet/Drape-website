@@ -24,10 +24,20 @@ interface ReviewItem {
 
 interface SizeProfile {
   hasScanned?: boolean;
-  measurements?: Record<string, number>;
+  measurements?: {
+    height?: number;
+    weight?: number;
+    chest?: number;
+    waist?: number;
+    hips?: number;
+    inseam?: number;
+    shoeSize?: string;
+    [key: string]: number | string | undefined;
+  };
   shoeSize?: string;
   brandSizes?: Record<string, Record<string, string>>;
 }
+
 
 export default function ProductModal({ product, onClose }: ProductModalProps) {
   const { openProductModal } = useProductModal();

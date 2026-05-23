@@ -1,6 +1,29 @@
 import { supabase } from "@/lib/supabase";
 import { Product, DEFAULT_PRODUCTS } from "./data";
 
+function mapSupabaseProductRow(p: any): Product {
+  return {
+    id: p.id,
+    name: p.name,
+    brand: p.brand,
+    category: p.category,
+    gender: p.gender,
+    price: Number(p.price),
+    originalPrice: p.original_price ?? null,
+    images: p.images || [],
+    colors: p.colors || [],
+    sizes: p.sizes || [],
+    rating: p.rating ?? 0,
+    reviews: p.reviews ?? 0,
+    fabric: p.fabric,
+    care: p.care,
+    description: p.description,
+    tags: p.tags || [],
+    inStock: Boolean(p.in_stock),
+  };
+}
+
+
 export interface SearchSuggestions {
   originalQuery: string;
   translatedQuery: string | null;
@@ -131,26 +154,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
       .limit(5);
 
     if (!error && data) {
-      matchingProducts = (data as any[]).map((p) => ({
-        id: p.id,
-        name: p.name,
-        brand: p.brand,
-        category: p.category,
-        gender: p.gender,
-        price: Number(p.price),
-        original_price: p.original_price,
-        images: p.images || [],
-        colors: p.colors || [],
-        sizes: p.sizes || [],
-        rating: p.rating ?? 0,
-        reviews: p.reviews ?? 0,
-        fabric: p.fabric,
-        care: p.care,
-        description: p.description,
-        tags: p.tags || [],
-        in_stock: p.in_stock,
-        created_at: p.created_at,
-      }));
+      matchingProducts = (data as any[]).map(mapSupabaseProductRow);
 
       // If we got empty results for the translated term, also try the raw query.
       if (matchingProducts.length === 0 && searchTerm.toLowerCase() !== trimmed.toLowerCase()) {
@@ -164,27 +168,9 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
           .limit(5);
 
         if (!rawError && rawData) {
-          matchingProducts = (rawData as any[]).map((p) => ({
-            id: p.id,
-            name: p.name,
-            brand: p.brand,
-            category: p.category,
-            gender: p.gender,
-            price: Number(p.price),
-            original_price: p.original_price,
-            images: p.images || [],
-            colors: p.colors || [],
-            sizes: p.sizes || [],
-            rating: p.rating ?? 0,
-            reviews: p.reviews ?? 0,
-            fabric: p.fabric,
-            care: p.care,
-            description: p.description,
-            tags: p.tags || [],
-            in_stock: p.in_stock,
-            created_at: p.created_at,
-          }));
+          matchingProducts = (rawData as any[]).map(mapSupabaseProductRow);
         }
+
       }
     }
   } catch (e) {

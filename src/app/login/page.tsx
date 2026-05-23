@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -16,6 +16,7 @@ export default function LoginPage() {
   const signInWithProvider = async (provider: "google" | "facebook") => {
     setError(null);
     setLoadingProvider(provider);
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -45,8 +46,9 @@ export default function LoginPage() {
         }}
       >
         <h1 style={{ fontFamily: "var(--font-h)", fontSize: "1.6rem", marginBottom: 8 }}>Log In</h1>
-        <p style={{ color: "var(--text-soft)", fontSize: 13, marginBottom: 18 }}>Continue with a provider.</p>
-
+        <p style={{ color: "var(--text-soft)", fontSize: 13, marginBottom: 18 }}>
+          Continue with a provider.
+        </p>
 
         {error && (
           <div
@@ -89,13 +91,29 @@ export default function LoginPage() {
           <button
             className="btn btn-link"
             onClick={() => router.push("/signup")}
-            style={{ padding: 0, color: "var(--navy)", fontWeight: 700, textDecoration: "underline" }}
+            style={{
+              padding: 0,
+              color: "var(--navy)",
+              fontWeight: 700,
+              textDecoration: "underline",
+            }}
           >
             Sign up
           </button>
         </div>
       </div>
     </section>
+  );
+}
+
+export default function LoginPage() {
+  // Next.js App Router: wrap useSearchParams consumer in Suspense boundary
+  // to avoid CSR bailout / prerender errors.
+  const LazyContent = LoginContent;
+  return (
+    <Suspense fallback={null}>
+      <LazyContent />
+    </Suspense>
   );
 }
 

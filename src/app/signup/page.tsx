@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -16,6 +16,7 @@ export default function SignupPage() {
   const signUpWithProvider = async (provider: "google" | "facebook") => {
     setError(null);
     setLoadingProvider(provider);
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -90,13 +91,26 @@ export default function SignupPage() {
           <button
             className="btn btn-link"
             onClick={() => router.push("/login")}
-            style={{ padding: 0, color: "var(--navy)", fontWeight: 700, textDecoration: "underline" }}
+            style={{
+              padding: 0,
+              color: "var(--navy)",
+              fontWeight: 700,
+              textDecoration: "underline",
+            }}
           >
             Log in
           </button>
         </div>
       </div>
     </section>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupContent />
+    </Suspense>
   );
 }
 
