@@ -1,16 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CheckoutModal from "./CheckoutModal";
 
-export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+type CartItem = {
+  product_id: number;
+  name: string;
+  brand: string;
+  price: number;
+  image: string;
+  size: string;
+  color: string;
+  quantity: number;
+  isAiMatched: boolean;
+};
+
+function readCart(): CartItem[] {
+  try {
+    const stored = localStorage.getItem("drape_cart") || "[]";
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed as CartItem[];
+  } catch {
+    return [];
+  }
+}
+
+export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  
-  // Mock cart items for demonstration
-  const cartItems = [
-    { id: 1, name: "Jordan Jumpman Knockout", price: 138, quantity: 1, img: "https://i.pinimg.com/736x/c2/c7/40/c2c740d467e07e78307e2163ca421c01.jpg" }
-  ];
-  const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  const total = useMemo(
+    () => cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
+    [cartItems]
+  );
+
+  const cartLinesCount = cartItems.length;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const sync = () => setCartItems(readCart());
+
+    sync();
+    window.addEventListener("cart_updated", sync);
+
+    return () => {
+      window.removeEventListener("cart_updated", sync);
+    };
+  }, [isOpen]);
+
+  // Close nested checkout if cart drawer is closed
+  useEffect(() => {
+    if (!isOpen) setIsCheckoutOpen(false);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -20,22 +63,46 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean, onClo
       <div className="cart-drawer open" role="dialog" aria-label="Shopping cart" style={{ right: 0 }}>
         <div className="cart-drawer-header">
           <span className="cart-drawer-title">
-            Your Bag <span style={{ fontSize: "1rem", color: "var(--text-soft)", fontWeight: 400 }}>({cartItems.length})</span>
+            Your Bag{" "}
+            <span style={{ fontSize: "1rem", color: "var(--text-soft)", fontWeight: 400 }}>
+              ({cartLinesCount})
+            </span>
           </span>
-          <button className="btn-icon" onClick={onClose} aria-label="Close cart">✕</button>
+          <button className="btn-icon" onClick={onClose} aria-label="Close cart">
+            ✕
+          </button>
         </div>
 
         <div className="cart-items-wrap">
-          {cartItems.map((item) => (
-            <div key={item.id} className="cart-item" style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-              <img src={item.img} alt={item.name} style={{ width: "60px", height: "80px", objectFit: "cover", borderRadius: "var(--r-sm)" }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{item.name}</div>
-                <div style={{ color: "var(--text-soft)", fontSize: "14px" }}>Qty: {item.quantity}</div>
-                <div style={{ fontWeight: 600, marginTop: "4px" }}>${item.price}</div>
+          {cartItems.length > 0 ? (
+            cartItems.map((item) => (
+              <div
+                key={item.product_id}
+                className="cart-item"
+                style={{ display: "flex", gap: "12px", marginBottom: "16px" }}
+              >
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  style={{ width: "60px", height: "80px", objectFit: "cover", borderRadius: "var(--r-sm)" }}
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600 }}>{item.name}</div>
+                  <div style={{ color: "var(--text-soft)", fontSize: "14px" }}>
+                    Qty: {item.quantity}
+                  </div>
+                  <div style={{ color: "var(--text-soft)", fontSize: "12px", marginTop: "4px" }}>
+                    {item.brand} • {item.size} • {item.color}
+                  </div>
+                  <div style={{ fontWeight: 600, marginTop: "6px" }}>${item.price}</div>
+                </div>
               </div>
+            ))
+          ) : (
+            <div style={{ padding: "24px 12px", color: "var(--text-soft)", textAlign: "center" }}>
+              Your bag is empty.
             </div>
-          ))}
+          )}
         </div>
 
         {cartItems.length > 0 && (
@@ -44,16 +111,16 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean, onClo
               <span className="cart-subtotal-label">Total</span>
               <span className="cart-subtotal-val">${total}</span>
             </div>
-            <button 
-              className="btn btn-navy btn-block btn-lg" 
-              style={{ marginTop: "12px" }} 
+            <button
+              className="btn btn-navy btn-block btn-lg"
+              style={{ marginTop: "12px" }}
               onClick={() => setIsCheckoutOpen(true)}
             >
               Checkout &rarr;
             </button>
-            <button 
-              className="btn btn-ghost btn-block btn-sm" 
-              style={{ marginTop: "6px", color: "var(--text-soft)" }} 
+            <button
+              className="btn btn-ghost btn-block btn-sm"
+              style={{ marginTop: "6px", color: "var(--text-soft)" }}
               onClick={onClose}
             >
               Continue Shopping
@@ -63,12 +130,9 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean, onClo
       </div>
 
       {isCheckoutOpen && (
-        <CheckoutModal 
-          cartItems={cartItems} 
-          total={total} 
-          onClose={() => setIsCheckoutOpen(false)} 
-        />
+        <CheckoutModal cartItems={cartItems} total={total} onClose={() => setIsCheckoutOpen(false)} />
       )}
     </>
   );
 }
+

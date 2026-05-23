@@ -240,7 +240,8 @@ export default function Header() {
           <span className="icon-label">Cart</span>
           {cartCount > 0 && <span className="badge" id="cart-badge">{cartCount}</span>}
         </div>
-        <button className="btn-login" id="login-btn">Log In</button>
+        <button className="btn-login" id="login-btn" onClick={() => router.push("/login")}>Log In</button>
+
       </div>
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
