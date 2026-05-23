@@ -17,7 +17,9 @@ const DeliveryMap = dynamic(() => import("@/components/DeliveryMap"), {
       borderRadius: "inherit",
     }}>
       <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)" }}>
-        <div style={{ fontSize: "2.5rem", marginBottom: "12px" }}>🗺️</div>
+        <div style={{ fontSize: "2.5rem", marginBottom: "12px" }}>
+          <img src="/images/weui--back-filled.svg" alt="Map" style={{ width: 32, height: 32 }} />
+        </div>
         <p style={{ fontSize: "14px", fontWeight: 600 }}>Loading map…</p>
       </div>
     </div>
@@ -31,10 +33,10 @@ const MOCK_DRIVER_START: DriverLocation = { lat: -17.8185, lng: 31.0271 };
 
 const getStepsForStatus = (status: string) => {
   return [
-    { icon: "✅", label: "Order Confirmed",  done: true },
-    { icon: "📦", label: "Packed & Ready",   done: status !== "Preparing" && status !== "Pending" },
-    { icon: "🛵", label: "Out for Delivery", done: status === "In Transit" || status === "Delivered" },
-    { icon: "🏠", label: "Delivered",        done: status === "Delivered" },
+    { icon: "", label: "Order Confirmed",  done: true },
+    { icon: "", label: "Packed & Ready",   done: status !== "Preparing" && status !== "Pending" },
+    { icon: "", label: "Out for Delivery", done: status === "In Transit" || status === "Delivered" },
+    { icon: "", label: "Delivered",        done: status === "Delivered" },
   ];
 };
 
@@ -207,7 +209,10 @@ function TrackingContent() {
             </div>
             {distanceKm && (
               <div style={{ fontSize: "13px", opacity: 0.65, marginTop: "8px" }}>
-                🛵 {distanceKm} km away
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <img src="/images/mdi--cart-outline.svg" alt="Delivery" style={{ width: 14, height: 14 }} />
+                  {distanceKm} km away
+                </span>
               </div>
             )}
             {lastUpdate && (
@@ -259,7 +264,10 @@ function TrackingContent() {
                     </div>
                     {step.done && i === 2 && (
                       <div style={{ fontSize: "11px", color: "var(--navy)", fontWeight: 600, marginTop: "2px" }}>
-                        🟢 In progress
+                        <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                          <img src="/images/material-symbols--star-half-rounded.svg" alt="In progress" style={{ width: 14, height: 14 }} />
+                          In progress
+                        </span>
                       </div>
                     )}
                   </div>
@@ -285,12 +293,17 @@ function TrackingContent() {
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: "24px", flexShrink: 0,
             }}>
-              🛵
+              <img src="/images/mdi--cart.svg" alt="Rider" style={{ width: 24, height: 24 }} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: "14px" }}>Tafadzwa M.</div>
               <div style={{ fontSize: "12px", color: "var(--text-soft)" }}>Your drape rider</div>
-              <div style={{ fontSize: "11px", color: "var(--text-soft)", marginTop: "2px" }}>⭐ 4.9 · 2,140 deliveries</div>
+              <div style={{ fontSize: "11px", color: "var(--text-soft)", marginTop: "2px" }}>
+                <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                  <img src="/images/material-symbols--star-rounded.svg" alt="Rating" style={{ width: 14, height: 14 }} />
+                  4.9 · 2,140 deliveries
+                </span>
+              </div>
             </div>
             <a
               href="tel:+263771234567"
@@ -302,7 +315,7 @@ function TrackingContent() {
               }}
               title="Call rider"
             >
-              📞
+              <img src="/images/mdi--account.svg" alt="Call" style={{ width: 18, height: 18 }} />
             </a>
           </div>
         </div>

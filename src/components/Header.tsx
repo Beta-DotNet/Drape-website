@@ -56,7 +56,7 @@ export default function Header() {
       } catch (err) {
         console.error("Suggestions error:", err);
       }
-    }, 200);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [search]);
@@ -122,7 +122,7 @@ export default function Header() {
           />
         </form>
         <button className="vs-trigger-btn" id="vs-trigger-btn" title="Visual search — search by photo" onClick={() => router.push('/visual-search')}>
-          📷
+          <img src="/images/instagram-search-icon.svg" alt="Visual search" style={{ width: 18, height: 18 }} />
         </button>
 
         {/* Floating Autocomplete Popover Dropdown */}
@@ -146,8 +146,8 @@ export default function Header() {
           >
             {/* Shona Translation Alert Header */}
             {suggestions.translatedQuery && (
-              <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(249, 211, 67, 0.12)", color: "var(--gold)", fontSize: "12px", display: "flex", gap: "6px", alignItems: "center", fontWeight: 600 }}>
-                <span>✨</span>
+          <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(249, 211, 67, 0.12)", color: "var(--gold)", fontSize: "12px", display: "flex", gap: "6px", alignItems: "center", fontWeight: 600 }}>
+                <Image src="/images/material-symbols--star-rounded.svg" alt="Sparkle" width={16} height={16} />
                 <span>Translating Shona: <strong>&ldquo;{suggestions.shonaTerm}&rdquo;</strong> &rarr; <strong>&ldquo;{suggestions.translatedQuery}&rdquo;</strong></span>
               </div>
             )}
@@ -158,7 +158,7 @@ export default function Header() {
                 <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", marginBottom: "6px" }}>Categories</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                   {suggestions.categories.map((cat) => (
-                    <div 
+                      <div 
                       key={cat} 
                       onClick={() => {
                         router.push(`/shop?category=${cat}`);

@@ -110,22 +110,109 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
     lowerQuery.includes(cat.toLowerCase())
   );
 
-  // Find matching products (up to 3) in static DEFAULT_PRODUCTS catalog
-  const matchingProducts = DEFAULT_PRODUCTS.filter(product => {
-    const nameMatch = product.name.toLowerCase().includes(lowerQuery);
-    const brandMatch = product.brand.toLowerCase().includes(lowerQuery);
-    const categoryMatch = product.category.toLowerCase().includes(lowerQuery);
-    const tagMatch = product.tags.some(t => t.toLowerCase().includes(lowerQuery));
-    const descMatch = product.description.toLowerCase().includes(lowerQuery);
+  // Supabase-backed fuzzy product search
+  // - Uses pg_trgm similarity via ilike fallback (server-side full-text can be added later)
+  // - Still supports Shona translation by searching using activeSearchQuery
+  // - Keeps results lightweight for dropdown performance
+  let matchingProducts: Product[] = [];
 
-    return nameMatch || brandMatch || categoryMatch || tagMatch || descMatch;
-  }).slice(0, 3);
+  try {
+    // Prefer translated term when Shona is detected
+    const searchTerm = activeSearchQuery;
+
+    // Multi-field fuzzy match (ILIKE) as an always-works baseline.
+    // You can later swap to full-text (tsvector) scoring.
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, brand, category, price, images, tags, description")
+      .or(
+        `name.ilike.%${searchTerm}% ,brand.ilike.%${searchTerm}% ,category.ilike.%${searchTerm}% ,description.ilike.%${searchTerm}%`
+      )
+      .limit(5);
+
+    if (!error && data) {
+      matchingProducts = (data as any[]).map((p) => ({
+        id: p.id,
+        name: p.name,
+        brand: p.brand,
+        category: p.category,
+        gender: p.gender,
+        price: Number(p.price),
+        original_price: p.original_price,
+        images: p.images || [],
+        colors: p.colors || [],
+        sizes: p.sizes || [],
+        rating: p.rating ?? 0,
+        reviews: p.reviews ?? 0,
+        fabric: p.fabric,
+        care: p.care,
+        description: p.description,
+        tags: p.tags || [],
+        in_stock: p.in_stock,
+        created_at: p.created_at,
+      }));
+
+      // If we got empty results for the translated term, also try the raw query.
+      if (matchingProducts.length === 0 && searchTerm.toLowerCase() !== trimmed.toLowerCase()) {
+        const rawTerm = trimmed;
+        const { data: rawData, error: rawError } = await supabase
+          .from("products")
+          .select("id, name, brand, category, price, images, tags, description")
+          .or(
+            `name.ilike.%${rawTerm}% ,brand.ilike.%${rawTerm}% ,category.ilike.%${rawTerm}% ,description.ilike.%${rawTerm}%`
+          )
+          .limit(5);
+
+        if (!rawError && rawData) {
+          matchingProducts = (rawData as any[]).map((p) => ({
+            id: p.id,
+            name: p.name,
+            brand: p.brand,
+            category: p.category,
+            gender: p.gender,
+            price: Number(p.price),
+            original_price: p.original_price,
+            images: p.images || [],
+            colors: p.colors || [],
+            sizes: p.sizes || [],
+            rating: p.rating ?? 0,
+            reviews: p.reviews ?? 0,
+            fabric: p.fabric,
+            care: p.care,
+            description: p.description,
+            tags: p.tags || [],
+            in_stock: p.in_stock,
+            created_at: p.created_at,
+          }));
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Supabase suggestions lookup failed; falling back to local catalog.", e);
+  }
+
+  // Fallback to static catalog for offline/dev when Supabase isn't ready.
+  if (matchingProducts.length === 0) {
+    matchingProducts = DEFAULT_PRODUCTS
+      .filter((product) => {
+        const nameMatch = product.name.toLowerCase().includes(lowerQuery);
+        const brandMatch = product.brand.toLowerCase().includes(lowerQuery);
+        const categoryMatch = product.category.toLowerCase().includes(lowerQuery);
+        const tagMatch = product.tags.some((t) => t.toLowerCase().includes(lowerQuery));
+        const descMatch = product.description.toLowerCase().includes(lowerQuery);
+
+        return nameMatch || brandMatch || categoryMatch || tagMatch || descMatch;
+      })
+      .slice(0, 3);
+  } else {
+    matchingProducts = matchingProducts.slice(0, 3);
+  }
 
   return {
     originalQuery: trimmed,
     translatedQuery: isShona ? translated : null,
     shonaTerm: isShona ? shonaTerm : null,
     categories: matchingCategories,
-    products: matchingProducts
+    products: matchingProducts,
   };
 }

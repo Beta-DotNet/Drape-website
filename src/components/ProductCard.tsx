@@ -66,7 +66,11 @@ export default function ProductCard({ product }: { product: Product }) {
             onClick={toggleWishlist}
             title={liked ? "Remove from wishlist" : "Add to wishlist"}
           >
-            {liked ? "❤" : "♡"}
+            <img
+              src={liked ? "/images/weui--like-filled.svg" : "/images/icon-park-outline--like.svg"}
+              alt={liked ? "Liked" : "Like"}
+              style={{ width: 18, height: 18, display: "block" }}
+            />
           </button>
           <button
             className="ph-btn"
@@ -97,10 +101,18 @@ export default function ProductCard({ product }: { product: Product }) {
           </button>
         </div>
         <div className="product-rating">
-          <span className="stars">
-            {/* simple star rendering for now */}
-            {"★".repeat(Math.round(product.rating))}
-            {"☆".repeat(5 - Math.round(product.rating))}
+          <span className="stars" aria-label={`Rating: ${product.rating} out of 5`}>
+            {Array.from({ length: 5 }).map((_, idx) => {
+              const filled = idx < Math.round(product.rating);
+              return (
+                <img
+                  key={idx}
+                  src={filled ? "/images/material-symbols--star-rounded.svg" : "/images/material-symbols--star-outline-rounded.svg"}
+                  alt={filled ? "Star" : "Empty star"}
+                  style={{ width: 14, height: 14, marginRight: 2, verticalAlign: "-2px" }}
+                />
+              );
+            })}
           </span>
           <span>({product.reviews})</span>
         </div>

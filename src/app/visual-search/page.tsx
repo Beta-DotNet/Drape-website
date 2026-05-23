@@ -20,7 +20,9 @@ export default function VisualSearchPage() {
 
         <div className="vs-upload-zone" id="vs-upload-zone">
           <input type="file" id="vs-file-input" accept="image/*" />
-          <div className="vs-upload-icon">🖼</div>
+          <div className="vs-upload-icon">
+            <img src="/images/instagram-search-icon.svg" alt="Upload" style={{ width: 28, height: 28 }} />
+          </div>
           <h3>Drop your photo here</h3>
           <p>Or click to browse &bull; JPG, PNG, WEBP supported</p>
           <button
