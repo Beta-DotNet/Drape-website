@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { ProductModalProvider } from "@/components/ProductModalContext";
 
 export const metadata: Metadata = {
   title: "drape — AI-Powered Fashion Marketplace",
@@ -15,11 +17,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Header />
-        <div id="app">
-          {children}
-        </div>
+        <ProductModalProvider>
+          <Header />
+          <div id="app">
+            {children}
+          </div>
+          <Footer />
+        </ProductModalProvider>
       </body>
     </html>
   );
 }
+
