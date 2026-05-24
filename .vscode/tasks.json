@@ -52,6 +52,14 @@
 				"$tsc",
 				"$eslint-stylish"
 			]
+		},
+		{
+			"label": "Build production app (direct binary)",
+			"type": "shell",
+			"command": "./node_modules/.bin/next build",
+			"args": [],
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }
