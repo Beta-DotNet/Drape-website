@@ -13,30 +13,31 @@ export default function Footer() {
             confidence — your perfect size, every time.
           </p>
           <ul className="footer-links">
-            <li><Link href="#">About Us</Link></li>
-            <li><Link href="#">Partner Boutiques</Link></li>
-            <li><Link href="#">Careers</Link></li>
-            <li><Link href="#">drape Mobile App</Link></li>
-            <li><Link href="#">Advertising</Link></li>
+            <li><Link href="/footer/about-us">About Us</Link></li>
+            <li><Link href="/footer/partner-boutiques">Partner Boutiques</Link></li>
+            <li><Link href="/footer/careers">Careers</Link></li>
+            <li><Link href="/footer/mobile-app">drape Mobile App</Link></li>
+            <li><Link href="/footer/advertising">Advertising</Link></li>
+            <li><Link href="/footer/help-support">Help &amp; Support</Link></li>
           </ul>
         </div>
         <div className="footer-col">
           <h3>Help &amp; Support</h3>
           <ul>
-            <li><Link href="#">Get Help</Link></li>
-            <li><Link href="#">Order Status</Link></li>
-            <li><Link href="#">Delivery</Link></li>
-            <li><Link href="#">Payment Options</Link></li>
+            <li><Link href="/footer/get-help">Get Help</Link></li>
+            <li><Link href="/footer/order-status">Order Status</Link></li>
+            <li><Link href="/footer/delivery">Delivery</Link></li>
+            <li><Link href="/footer/payment-options">Payment Options</Link></li>
           </ul>
         </div>
         <div className="footer-col">
           <h3>Customer Care</h3>
           <ul>
-            <li><Link href="#">Contact Us</Link></li>
-            <li><Link href="#">FAQs</Link></li>
-            <li><Link href="#">Orders &amp; Deliveries</Link></li>
-            <li><Link href="#">Returns &amp; Refunds</Link></li>
-            <li><Link href="#">Terms &amp; Conditions</Link></li>
+            <li><Link href="/footer/contact-us">Contact Us</Link></li>
+            <li><Link href="/footer/faqs">FAQs</Link></li>
+            <li><Link href="/footer/orders-deliveries">Orders &amp; Deliveries</Link></li>
+            <li><Link href="/footer/returns-refunds">Returns &amp; Refunds</Link></li>
+            <li><Link href="/footer/terms-conditions">Terms &amp; Conditions</Link></li>
           </ul>
         </div>
         <div className="footer-col">
@@ -47,17 +48,23 @@ export default function Footer() {
             <div className="country-label">Zimbabwe</div>
           </div>
           <div className="footer-social" style={{ marginTop: "24px", justifyContent: "flex-end" }}>
-            <Link href="#"><img src="/images/mdi--instagram.svg" alt="Instagram" /></Link>
-            <Link href="#"><img src="/images/prime--twitter.svg" alt="Twitter" /></Link>
-            <Link href="#"><img src="/images/line-md--linkedin.svg" alt="LinkedIn" /></Link>
+            <Link href="https://www.instagram.com/" target="_blank" rel="noreferrer">
+              <img src="/images/mdi--instagram.svg" alt="Instagram" />
+            </Link>
+            <Link href="https://x.com/" target="_blank" rel="noreferrer">
+              <img src="/images/prime--twitter.svg" alt="Twitter" />
+            </Link>
+            <Link href="https://www.linkedin.com/" target="_blank" rel="noreferrer">
+              <img src="/images/line-md--linkedin.svg" alt="LinkedIn" />
+            </Link>
           </div>
         </div>
       </div>
       <div className="footer-bottom">
         <p>&copy; 2026 drape, Inc. All rights reserved.</p>
         <div className="footer-legal">
-          <Link href="#">Terms of Sale</Link>
-          <Link href="#">Privacy Settings</Link>
+          <Link href="/footer/terms-of-sale">Terms of Sale</Link>
+          <Link href="/footer/privacy-settings">Privacy Settings</Link>
         </div>
       </div>
     </footer>

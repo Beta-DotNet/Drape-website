@@ -420,6 +420,34 @@
 <div id="overlay-backdrop" class="overlay-backdrop" onclick="closeAllOverlays()"></div>
 
 <!-- ============================================================
+     LOGIN MODAL
+     ============================================================ -->
+<div id="login-modal" class="login-modal" role="dialog" aria-modal="true" aria-label="Log in to drape">
+  <div class="login-modal-inner">
+    <button class="modal-close" onclick="closeLoginModal()" aria-label="Close">✕</button>
+    <div class="login-modal-header">
+      <p class="login-modal-eyebrow">Welcome back</p>
+      <h2>Log in to drape</h2>
+      <p class="login-modal-copy">Access saved sizes, wishlist items, and your order history.</p>
+    </div>
+    <form id="login-form" class="manual-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label" for="login-email">Email</label>
+        <input class="form-input" id="login-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="login-password">Password</label>
+        <input class="form-input" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-soft)">
+        <input type="checkbox" id="login-remember" style="accent-color:var(--navy)"> Keep me signed in on this device
+      </label>
+      <button class="btn btn-navy btn-block btn-lg" type="submit" style="margin-top:8px">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================
      PRODUCT DETAIL MODAL
      ============================================================ -->
 <div id="product-modal" class="product-modal" role="dialog" aria-modal="true" aria-label="Product detail">
@@ -900,6 +928,7 @@ let state = {
   cart: [],
   wishlist: [],
   orders: [],
+  auth: {isLoggedIn:false, email:'', remember:false},
   userProfile: {hasScanned:false, measurements:{}, brandSizes:{}, stylePrefs:[]},
   activeView: 'home',
   activeProduct: null,
@@ -918,6 +947,7 @@ function saveState(){
     localStorage.setItem('drape_wishlist', JSON.stringify(state.wishlist));
     localStorage.setItem('drape_orders',   JSON.stringify(state.orders));
     localStorage.setItem('drape_profile',  JSON.stringify(state.userProfile));
+    localStorage.setItem('drape_auth',     JSON.stringify(state.auth));
   }catch(e){}
 }
 function loadState(){
@@ -928,7 +958,19 @@ function loadState(){
     const w = localStorage.getItem('drape_wishlist'); if(w) state.wishlist = JSON.parse(w);
     const o = localStorage.getItem('drape_orders');   if(o) state.orders = JSON.parse(o);
     const u = localStorage.getItem('drape_profile');  if(u) state.userProfile = JSON.parse(u);
+    const a = localStorage.getItem('drape_auth');     if(a) state.auth = JSON.parse(a);
   }catch(e){ state.products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS)); }
+}
+
+function updateLoginButton(){
+  const btn=document.getElementById('login-btn');
+  if(!btn) return;
+  if(state.auth?.isLoggedIn){
+    const name = (state.auth.email||'').split('@')[0] || 'Member';
+    btn.textContent = `Hi, ${name}`;
+  } else {
+    btn.textContent = 'Log In';
+  }
 }
 
 /* ─── NAVIGATION ─────────────────────────────────────────────── */
@@ -1178,6 +1220,7 @@ let selectedSize = null;
 function openProductModal(id){
   const p=state.products.find(x=>x.id===id);
   if(!p) return;
+  closeAllOverlays();
   state.activeProduct=p;
   selectedSize=null;
 
@@ -1228,8 +1271,7 @@ function openProductModal(id){
   lookItems.innerHTML=others.map(x=>`<div class="look-item" onclick="openProductModal(${x.id});"><img src="${x.images[0]}" alt="${x.name}"><p>${x.name}</p></div>`).join('');
 
   document.getElementById('product-modal').classList.add('active');
-  document.getElementById('overlay-backdrop').classList.add('active');
-  document.body.style.overflow='hidden';
+  syncOverlayState();
 }
 function updateWishlistBtn(id){
   const btn=document.getElementById('pm-wishlist-btn');
@@ -1246,10 +1288,28 @@ function selectSize(s,el){
   el.classList.add('selected');
 }
 function closeSizeWizardTrigger(){closeProductModal();openSizeWizard();}
+function hasAnyOverlayOpen(){
+  return document.getElementById('product-modal').classList.contains('active') ||
+    document.getElementById('cart-drawer').classList.contains('open') ||
+    document.getElementById('size-wizard').classList.contains('active') ||
+    document.getElementById('checkout-modal').classList.contains('active') ||
+    document.getElementById('admin-modal').classList.contains('active') ||
+    document.getElementById('login-modal').classList.contains('active') ||
+    document.getElementById('confirm-dialog').classList.contains('active');
+}
+function syncOverlayState(){
+  const backdrop=document.getElementById('overlay-backdrop');
+  if(hasAnyOverlayOpen()){
+    backdrop.classList.add('active');
+    document.body.style.overflow='hidden';
+  } else {
+    backdrop.classList.remove('active');
+    document.body.style.overflow='';
+  }
+}
 function closeProductModal(){
   document.getElementById('product-modal').classList.remove('active');
-  document.getElementById('overlay-backdrop').classList.remove('active');
-  document.body.style.overflow='';
+  syncOverlayState();
 }
 function toggleAccordion(btn){
   btn.classList.toggle('open');
@@ -1258,6 +1318,11 @@ function toggleAccordion(btn){
 function closeAllOverlays(){
   closeProductModal();
   closeCart();
+  closeSizeWizard();
+  closeCheckout();
+  closeAdminModal();
+  closeLoginModal();
+  closeConfirm();
 }
 
 /* ─── CART ───────────────────────────────────────────────────── */
@@ -1285,15 +1350,14 @@ function removeFromCart(cartId){
   saveState();updateCartBadge();renderCartItems();
 }
 function openCart(){
+  closeAllOverlays();
   document.getElementById('cart-drawer').classList.add('open');
-  document.getElementById('overlay-backdrop').classList.add('active');
-  document.body.style.overflow='hidden';
+  syncOverlayState();
   renderCartItems();
 }
 function closeCart(){
   document.getElementById('cart-drawer').classList.remove('open');
-  document.getElementById('overlay-backdrop').classList.remove('active');
-  document.body.style.overflow='';
+  syncOverlayState();
 }
 function renderCartItems(){
   const wrap=document.getElementById('cart-items-wrap');
@@ -1354,18 +1418,17 @@ let scanPhase=0;
 let kpAnimating=false;
 
 function openSizeWizard(){
+  closeAllOverlays();
   state.wizardStep=0;
   scanPhase=0;
   kpAnimating=false;
   renderWizardStep(0);
   document.getElementById('size-wizard').classList.add('active');
-  document.getElementById('overlay-backdrop').classList.add('active');
-  document.body.style.overflow='hidden';
+  syncOverlayState();
 }
 function closeSizeWizard(){
   document.getElementById('size-wizard').classList.remove('active');
-  document.getElementById('overlay-backdrop').classList.remove('active');
-  document.body.style.overflow='';
+  syncOverlayState();
   if(scanTimer) clearTimeout(scanTimer);
 }
 function renderWizardStep(step){
@@ -1470,17 +1533,16 @@ function showSizeProfileInNav(){navigate('profile');}
 
 /* ─── CHECKOUT ────────────────────────────────────────────────── */
 function openCheckout(){
-  closeCart();
+  if(state.cart.length===0){toast('Your bag is empty','warn');return;}
+  closeAllOverlays();
   state.coStep=0;
   renderCoStep();
   document.getElementById('checkout-modal').classList.add('active');
-  document.getElementById('overlay-backdrop').classList.add('active');
-  document.body.style.overflow='hidden';
+  syncOverlayState();
 }
 function closeCheckout(){
   document.getElementById('checkout-modal').classList.remove('active');
-  document.getElementById('overlay-backdrop').classList.remove('active');
-  document.body.style.overflow='';
+  syncOverlayState();
 }
 function renderCoStep(){
   document.querySelectorAll('.co-step').forEach((s,i)=>s.classList.toggle('active',i===state.coStep));
@@ -1495,10 +1557,35 @@ function renderCoStep(){
     }
   }
 }
-function coNext(){state.coStep++;renderCoStep();}
+function validateShippingStep(){
+  const required=['co-fname','co-lname','co-email','co-address','co-city','co-country'];
+  const missing=required.filter(id=>!document.getElementById(id).value.trim());
+  if(missing.length){toast('Please complete all shipping details','warn');return false;}
+  const email=document.getElementById('co-email').value.trim();
+  if(!/^\S+@\S+\.\S+$/.test(email)){toast('Please enter a valid email address','warn');return false;}
+  return true;
+}
+function validatePaymentStep(){
+  const cardName=document.getElementById('co-card-name').value.trim();
+  const cardNum=document.getElementById('co-card-num').value.replace(/\s+/g,'');
+  const expiry=document.getElementById('co-expiry').value.trim();
+  const cvv=document.getElementById('co-cvv').value.trim();
+  if(!cardName){toast('Please enter the cardholder name','warn');return false;}
+  if(!/^\d{16}$/.test(cardNum)){toast('Please enter a valid 16-digit card number','warn');return false;}
+  if(!/^\d{2}\/\d{2}$/.test(expiry)){toast('Please enter the expiry as MM/YY','warn');return false;}
+  if(!/^\d{3,4}$/.test(cvv)){toast('Please enter a valid CVV','warn');return false;}
+  return true;
+}
+function coNext(){
+  if(state.coStep===1 && !validateShippingStep()) return;
+  if(state.coStep===2 && !validatePaymentStep()) return;
+  state.coStep++;
+  renderCoStep();
+}
 function coBack(){state.coStep--;renderCoStep();}
 function formatCard(el){let v=el.value.replace(/\D/g,'').substring(0,16);el.value=v.replace(/(.{4})/g,'$1 ').trim();}
 function placeOrder(){
+  if(!validatePaymentStep()) return;
   const order={id:'DRP-'+Math.random().toString(36).substr(2,6).toUpperCase(),items:[...state.cart],total:state.cart.reduce((s,i)=>s+i.price,0),date:new Date().toLocaleDateString(),status:'Processing'};
   state.orders.unshift(order);
   state.cart=[];
@@ -1509,6 +1596,31 @@ function placeOrder(){
   document.getElementById('checkout-title').textContent='Order Confirmed ✓';
   document.getElementById('tr-confirmed').textContent=new Date().toLocaleString();
   toast('Order placed successfully! 🎉','success');
+}
+
+function openLoginModal(){
+  closeAllOverlays();
+  document.getElementById('login-modal').classList.add('active');
+  syncOverlayState();
+  const form=document.getElementById('login-form');
+  if(form) form.reset();
+}
+function closeLoginModal(){
+  document.getElementById('login-modal').classList.remove('active');
+  syncOverlayState();
+}
+function handleLogin(e){
+  e.preventDefault();
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  if(!email || !password){toast('Please enter your email and password','warn');return;}
+  state.auth.isLoggedIn=true;
+  state.auth.email=email;
+  state.auth.remember=document.getElementById('login-remember').checked;
+  saveState();
+  updateLoginButton();
+  closeLoginModal();
+  toast('Signed in successfully ✓','success');
 }
 
 /* ─── PROFILE VIEW ───────────────────────────────────────────── */
@@ -1622,9 +1734,9 @@ function renderAdminOrders(){
 
 /* ─── ADMIN CRUD ─────────────────────────────────────────────── */
 function openProductForm(id){
+  closeAllOverlays();
   document.getElementById('admin-modal').classList.add('active');
-  document.getElementById('overlay-backdrop').classList.add('active');
-  document.body.style.overflow='hidden';
+  syncOverlayState();
   if(id){
     const p=state.products.find(x=>x.id===id);
     if(!p) return;
@@ -1654,8 +1766,7 @@ function openProductForm(id){
 }
 function closeAdminModal(){
   document.getElementById('admin-modal').classList.remove('active');
-  document.getElementById('overlay-backdrop').classList.remove('active');
-  document.body.style.overflow='';
+  syncOverlayState();
 }
 function saveProduct(e){
   e.preventDefault();
@@ -1710,7 +1821,10 @@ function deleteProduct(id){
   renderAdminDashboard();
   toast('Product deleted','warn');
 }
-function closeConfirm(){document.getElementById('confirm-dialog').classList.remove('active');}
+function closeConfirm(){
+  document.getElementById('confirm-dialog').classList.remove('active');
+  syncOverlayState();
+}
 
 /* ─── TOAST ─────────────────────────────────────────────────── */
 function toast(msg, type=''){
@@ -1740,10 +1854,12 @@ document.getElementById('search-submit-btn').addEventListener('click',function()
 document.getElementById('vs-trigger-btn').addEventListener('click',function(){navigate('visual-search');});
 document.getElementById('cart-trigger-btn').addEventListener('click',openCart);
 document.getElementById('wishlist-btn').addEventListener('click',function(){navigate('profile');switchProfileTab('wishlist',document.querySelectorAll('.ptab')[2]);});
+document.getElementById('login-btn').addEventListener('click',function(){ if(state.auth?.isLoggedIn){ navigate('profile'); return; } openLoginModal(); });
 document.getElementById('vs-upload-zone').addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
 document.getElementById('vs-upload-zone').addEventListener('dragleave',function(){this.classList.remove('drag-over');});
 document.getElementById('vs-upload-zone').addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');if(e.dataTransfer.files.length){toast('📷 Analysing image…');setTimeout(()=>runVisualSearch(0),1200);}});
 document.getElementById('vs-upload-zone').addEventListener('click',function(e){if(e.target.tagName!=='BUTTON'&&e.target.tagName!=='INPUT')document.getElementById('vs-file-input').click();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape' && hasAnyOverlayOpen()){closeAllOverlays();}});
 
 /* ─── INIT ────────────────────────────────────────────────────── */
 (function init(){
@@ -1751,6 +1867,7 @@ document.getElementById('vs-upload-zone').addEventListener('click',function(e){i
   renderHomeView();
   updateCartBadge();
   updateWishlistBadge();
+  updateLoginButton();
   // restore style prefs
   if(state.userProfile.stylePrefs&&state.userProfile.stylePrefs.length){
     document.querySelectorAll('.pref-card').forEach(el=>{

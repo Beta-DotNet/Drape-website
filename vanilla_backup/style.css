@@ -436,7 +436,27 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 .overlay-backdrop.active{opacity:1;pointer-events:all}
 
 /* ============================================================
-   14. PRODUCT DETAIL MODAL
+   14. LOGIN MODAL
+   ============================================================ */
+.login-modal{
+  position:fixed;inset:0;z-index:1200;
+  display:flex;align-items:center;justify-content:center;padding:var(--s-xl);
+  pointer-events:none;opacity:0;transform:scale(.97);
+  transition:opacity 280ms var(--ease),transform 280ms var(--ease);
+}
+.login-modal.active{opacity:1;transform:scale(1);pointer-events:all}
+.login-modal-inner{
+  background:var(--white);border-radius:var(--r-xl);
+  width:100%;max-width:440px;position:relative;
+  padding:var(--s-xl);box-shadow:0 40px 100px rgba(15,23,42,0.25);
+}
+.login-modal-header{padding-bottom:var(--s-lg);margin-bottom:var(--s-lg);border-bottom:1px solid var(--border)}
+.login-modal-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--text-soft);margin-bottom:8px}
+.login-modal-header h2{font-family:var(--font-h);font-size:1.8rem;letter-spacing:-.02em;margin-bottom:6px}
+.login-modal-copy{font-size:14px;color:var(--text-mid);line-height:1.6}
+
+/* ============================================================
+   15. PRODUCT DETAIL MODAL
    ============================================================ */
 .product-modal{
   position:fixed;inset:0;z-index:1200;
@@ -531,7 +551,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 .look-item p{font-size:10px;color:var(--text-soft);margin-top:3px}
 
 /* ============================================================
-   15. CART DRAWER
+   16. CART DRAWER
    ============================================================ */
 .cart-drawer{
   position:fixed;top:0;right:0;
@@ -574,7 +594,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 .cart-empty p{font-size:15px;margin-bottom:var(--s-lg)}
 
 /* ============================================================
-   16. AI SIZE WIZARD
+   17. AI SIZE WIZARD
    ============================================================ */
 .size-wizard{
   position:fixed;inset:0;z-index:1400;
@@ -664,7 +684,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 .wizard-nav-right{display:flex;gap:var(--s-sm);align-items:center}
 
 /* ============================================================
-   17. CHECKOUT MODAL
+   18. CHECKOUT MODAL
    ============================================================ */
 .checkout-modal{
   position:fixed;inset:0;z-index:1400;
@@ -705,12 +725,11 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 .t-dot{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--white);flex-shrink:0;z-index:1}
 .t-dot.done{background:var(--navy);border-color:var(--navy);color:#fff}
 .t-dot.current{background:var(--gold);border-color:var(--gold);color:var(--navy-dark)}
-.t-info{}
 .t-label{font-family:var(--font-h);font-weight:600;font-size:14px}
 .t-sub{font-size:12px;color:var(--text-soft)}
 
 /* ============================================================
-   18. PROFILE VIEW
+   19. PROFILE VIEW
    ============================================================ */
 .profile-view{padding:var(--s-2xl) var(--s-xl);max-width:920px;margin:0 auto}
 .profile-view h1{font-size:2.4rem;letter-spacing:-.03em;margin-bottom:var(--s-xl)}

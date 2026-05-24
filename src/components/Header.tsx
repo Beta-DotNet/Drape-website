@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import CartDrawer from "./CartDrawer";
 import { useProductModal } from "./ProductModalContext";
 import { getSearchSuggestions, SearchSuggestions } from "@/lib/search";
+import { getAdminSession } from "@/lib/admin-auth";
 
 export default function Header() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function Header() {
   const [cartCount, setCartCount] = useState(0); 
   const [wishlistCount] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   
   // Suggestions dropdown state
   const [suggestions, setSuggestions] = useState<SearchSuggestions | null>(null);
@@ -35,9 +37,18 @@ export default function Header() {
       }
     };
 
+    const updateAdminState = () => {
+      setIsAdminLoggedIn(getAdminSession());
+    };
+
     updateCartCount(); // Initial load
+    updateAdminState();
     window.addEventListener("cart_updated", updateCartCount);
-    return () => window.removeEventListener("cart_updated", updateCartCount);
+    window.addEventListener("storage", updateAdminState);
+    return () => {
+      window.removeEventListener("cart_updated", updateCartCount);
+      window.removeEventListener("storage", updateAdminState);
+    };
   }, []);
 
   // Debounced Auto-suggestions effect
@@ -222,7 +233,9 @@ export default function Header() {
         <Link href="/shop?category=Kids" id="nav-kids">Kids</Link>
         <Link href="/shop" id="nav-shop">All</Link>
         <Link href="/visual-search" id="nav-vs">🔍 Visual</Link>
-        <Link href="/admin" id="nav-admin" className="admin-link">⚙ Admin</Link>
+        {isAdminLoggedIn && (
+          <Link href="/admin" id="nav-admin" className="admin-link">⚙ Admin</Link>
+        )}
       </nav>
 
       <div className="header-actions">
