@@ -3,6 +3,7 @@
 import { useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { syncUserProfile } from "@/lib/profile-sync";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -39,7 +40,7 @@ function LoginContent() {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const handleDemoLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setTouched({ email: true, password: true });
@@ -53,11 +54,25 @@ function LoginContent() {
     setLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 700));
-      setStatus({ tone: "success", message: "Welcome back! Demo sign-in completed." });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: form.email,
+        password: form.password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const profileError = await syncUserProfile(data.user);
+      if (profileError) {
+        throw profileError;
+      }
+
+      setStatus({ tone: "success", message: "Welcome back! You’re signed in." });
       router.push(redirectTo);
-    } catch {
-      setStatus({ tone: "error", message: "Sign-in is temporarily unavailable. Please try again." });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Sign-in is temporarily unavailable. Please try again.";
+      setStatus({ tone: "error", message });
       setLoading(false);
     }
   };
@@ -87,7 +102,7 @@ function LoginContent() {
     } catch (error: any) {
       setStatus({
         tone: "error",
-        message: error?.message || "Social sign-in is currently unavailable in demo mode.",
+        message: error?.message || "Social sign-in is currently unavailable. Please check your provider configuration.",
       });
       setProviderLoading(null);
     }
@@ -109,8 +124,8 @@ function LoginContent() {
           </div>
 
           <div className="auth-highlight-card">
-            <p className="auth-highlight-kicker">Demo mode</p>
-            <p className="auth-highlight-copy">For demo purposes, any valid email/password combination is accepted. Social buttons are ready for your configured auth provider.</p>
+            <p className="auth-highlight-kicker">Secure sign in</p>
+            <p className="auth-highlight-copy">Use your real account credentials and confirm your email during sign-up to access your saved profile, orders, and recommendations.</p>
           </div>
 
           <div className="auth-badges">
@@ -134,7 +149,7 @@ function LoginContent() {
             {status?.message}
           </div>
 
-          <form className="auth-form" onSubmit={handleDemoLogin} noValidate>
+          <form className="auth-form" onSubmit={handleLogin} noValidate>
             <div className="auth-field">
               <label htmlFor="login-email">Email</label>
               <div className="auth-input-wrap">

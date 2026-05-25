@@ -1,25 +1,48 @@
 import { supabase } from "@/lib/supabase";
 import { Product, DEFAULT_PRODUCTS } from "./data";
 
-function mapSupabaseProductRow(p: any): Product {
+type SupabaseProductRow = {
+  id: number;
+  name: string;
+  brand: string;
+  category: string;
+  gender?: string | null;
+  price: number | string;
+  original_price?: number | string | null;
+  images?: string[] | null;
+  colors?: string[] | null;
+  sizes?: string[] | null;
+  rating?: number | null;
+  reviews?: number | null;
+  fabric?: string | null;
+  care?: string | null;
+  description: string;
+  tags?: string[] | null;
+  in_stock?: boolean | null;
+};
+
+function mapSupabaseProductRow(p: unknown): Product {
+  const row = p as Partial<SupabaseProductRow>;
+
+
   return {
-    id: p.id,
-    name: p.name,
-    brand: p.brand,
-    category: p.category,
-    gender: p.gender,
-    price: Number(p.price),
-    originalPrice: p.original_price ?? null,
-    images: p.images || [],
-    colors: p.colors || [],
-    sizes: p.sizes || [],
-    rating: p.rating ?? 0,
-    reviews: p.reviews ?? 0,
-    fabric: p.fabric,
-    care: p.care,
-    description: p.description,
-    tags: p.tags || [],
-    inStock: Boolean(p.in_stock),
+    id: typeof row.id === "number" ? row.id : Number(row.id ?? 0),
+    name: typeof row.name === "string" ? row.name : "",
+    brand: typeof row.brand === "string" ? row.brand : "",
+    category: typeof row.category === "string" ? row.category : "",
+    gender: typeof row.gender === "string" ? row.gender : "",
+    price: Number(row.price ?? 0),
+    originalPrice: typeof row.original_price === "number" ? row.original_price : row.original_price ? Number(row.original_price) : null,
+    images: row.images ?? [],
+    colors: row.colors ?? [],
+    sizes: row.sizes ?? [],
+    rating: typeof row.rating === "number" ? row.rating : 0,
+    reviews: typeof row.reviews === "number" ? row.reviews : 0,
+    fabric: typeof row.fabric === "string" ? row.fabric : "",
+    care: typeof row.care === "string" ? row.care : "",
+    description: typeof row.description === "string" ? row.description : "",
+    tags: row.tags ?? [],
+    inStock: Boolean(row.in_stock),
   };
 }
 
@@ -73,7 +96,7 @@ export async function translateShonaTerm(query: string): Promise<{
       
       // 1. Try Supabase dictionary lookup
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from("shona_dictionary")
           .select("english_translation")
           .eq("shona_term", cleanWord)
@@ -154,7 +177,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
       .limit(5);
 
     if (!error && data) {
-      matchingProducts = (data as any[]).map(mapSupabaseProductRow);
+      matchingProducts = (data as unknown[]).map(mapSupabaseProductRow);
 
       // If we got empty results for the translated term, also try the raw query.
       if (matchingProducts.length === 0 && searchTerm.toLowerCase() !== trimmed.toLowerCase()) {
@@ -168,7 +191,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
           .limit(5);
 
         if (!rawError && rawData) {
-          matchingProducts = (rawData as any[]).map(mapSupabaseProductRow);
+          matchingProducts = (rawData as unknown[]).map(mapSupabaseProductRow);
         }
 
       }

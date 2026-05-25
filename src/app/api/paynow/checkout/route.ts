@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     // Create the order in Supabase (falls back to random INV number if database isn't ready)
     let orderId = `INV-${Math.floor(Math.random() * 1000000)}`;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("orders")
         .insert([
           {

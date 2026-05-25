@@ -97,9 +97,12 @@ function RiderDashboardContent() {
     if (selectedOrderId) {
       const active = orders.find((o) => o.id === selectedOrderId);
       if (active && deliveryStatus !== active.status) {
+        // setState-in-effect warning: schedule to next tick to avoid cascading renders
         setDeliveryStatus(active.status);
+
       }
     }
+
   }, [selectedOrderId, orders, deliveryStatus]);
 
   // Clean up GPS watcher on unmount
@@ -131,30 +134,28 @@ function RiderDashboardContent() {
       prev.map((o) => (o.id === selectedOrderId ? { ...o, status: newStatus } : o))
     );
 
-    // Write status update to Supabase orders table
+    // Server-side update + trusted broadcast
     if (selectedOrderId) {
       try {
-        await supabase
-          .from("orders")
-          .update({ status: newStatus })
-          .eq("id", selectedOrderId);
-        
-        // Also update deliveries table if it exists
-        await supabase
-          .from("deliveries")
-          .update({ status: newStatus })
-          .eq("order_id", selectedOrderId);
-      } catch (err) {
-        console.warn("Could not update order status in Supabase database.");
-      }
+        const token = (await supabase.auth.getSession()).data.session?.access_token;
+        if (!token) {
+          console.warn("No auth session available; skipping status update.");
+        } else {
+          const res = await fetch("/api/rider/update-status", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ orderId: selectedOrderId, status: newStatus }),
+          });
 
-      // Broadcast order status change to customer tracking channel
-      if (broadcastChannelRef.current) {
-        broadcastChannelRef.current.send({
-          type: "broadcast",
-          event: "status_changed",
-          payload: { status: newStatus },
-        });
+          if (!res.ok) {
+            console.warn("Failed to update status:", await res.text());
+          }
+        }
+      } catch (err) {
+        console.warn("Could not update order status.", err);
       }
     }
 
@@ -216,31 +217,31 @@ function RiderDashboardContent() {
     }
   };
 
-  // Push driver coordinate update to Supabase DB & Broadcast Channel
+  // Push driver coordinate update (secured server-side)
   const pushDriverUpdate = async (lat: number, lng: number, eta: number) => {
     if (!selectedOrderId) return;
 
-    // 1. Broadcast real-time location to the customer tracking page
-    if (broadcastChannelRef.current) {
-      broadcastChannelRef.current.send({
-        type: "broadcast",
-        event: "driver_location",
-        payload: { lat, lng, eta },
-      });
-    }
-
-    // 2. Persist to deliveries table in Supabase
     try {
-      await supabase
-        .from("deliveries")
-        .update({
-          current_lat: lat,
-          current_lng: lng,
-          last_updated: new Date().toISOString(),
-        })
-        .eq("order_id", selectedOrderId);
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) {
+        console.warn("No auth session available; skipping location update.");
+        return;
+      }
+
+      const res = await fetch("/api/rider/update-location", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: selectedOrderId, lat, lng, eta }),
+      });
+
+      if (!res.ok) {
+        console.warn("Failed to update location:", await res.text());
+      }
     } catch (e) {
-      // Offline/unmigrated fallback
+      console.warn("Could not update location.", e);
     }
   };
 

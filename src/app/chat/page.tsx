@@ -32,6 +32,7 @@ function ChatContent() {
     }
     return "";
   });
+
   const [isTyping, setIsTyping] = useState(false);
   const [opponentTyping, setOpponentTyping] = useState(false);
   const [attachment, setAttachment] = useState<string | null>(null);
@@ -131,7 +132,7 @@ function ChatContent() {
             return [...prev, newMsg];
           });
           // Mark as read immediately
-          supabase
+          void (supabase as any)
             .from("messages")
             .update({ status: "read" })
             .eq("id", newMsg.id)
@@ -225,18 +226,20 @@ function ChatContent() {
     setMessages((prev) => [...prev, newMsg]);
 
     try {
-      const { error } = await supabase.from("messages").insert([
-        {
-          id: newMsg.id,
-          sender_id: newMsg.sender_id,
-          receiver_id: newMsg.receiver_id,
-          content: newMsg.content,
-          image_url: newMsg.image_url,
-          order_id: orderIdParam || null,
-          product_id: product ? product.id : null,
-          status: "sent",
-        },
-      ]);
+      const { error } = await (supabase as any)
+        .from("messages")
+        .insert([
+          {
+            id: newMsg.id,
+            sender_id: newMsg.sender_id,
+            receiver_id: newMsg.receiver_id,
+            content: newMsg.content,
+            image_url: newMsg.image_url,
+            order_id: orderIdParam || null,
+            product_id: product ? product.id : null,
+            status: "sent",
+          },
+        ]);
       if (error) throw error;
     } catch (err) {
       console.warn("Supabase save error, simulating chat reply locally.", err);
@@ -259,7 +262,7 @@ function ChatContent() {
         setMessages((prev) => [...prev, replyMsg]);
 
         // Try writing reply to DB so admin inbox can see it
-        supabase
+        (supabase as any)
           .from("messages")
           .insert([
             {
@@ -297,34 +300,22 @@ function ChatContent() {
   };
 
   return (
-    <div style={{
-      maxWidth: "1000px",
-      margin: "0 auto",
-      height: "calc(100vh - var(--header-h))",
-      padding: "20px",
-      display: "grid",
-      gridTemplateRows: product ? "auto 1fr auto" : "1fr auto",
-      gap: "12px",
-    }}>
+    <div
+      className="gui-chat-shell"
+      style={{
+        gridTemplateRows: product ? "auto 1fr auto" : "1fr auto",
+      }}
+    >
       {/* Product context banner */}
       {product && (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-          padding: "12px 18px",
-          borderRadius: "12px",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-        }}>
+        <div className="gui-chat-hero">
           <img src={product.images[0]} alt={product.name} style={{ width: "40px", height: "46px", objectFit: "cover", borderRadius: "6px" }} />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--gold)", fontWeight: 700 }}>Inquiring About:</div>
             <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff" }}>{product.name}</div>
             <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>{product.brand} · ${product.price}</div>
           </div>
-          <button 
+          <button
             onClick={() => {
               const urlParams = new URLSearchParams(searchParams.toString());
               urlParams.delete("product");
@@ -332,6 +323,8 @@ function ChatContent() {
               setProduct(null);
             }}
             style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: "18px" }}
+            aria-label="Close"
+            title="Close"
           >
             ✕
           </button>
@@ -339,24 +332,27 @@ function ChatContent() {
       )}
 
       {/* Messages area */}
-      <div style={{
-        background: "var(--white)",
-        borderRadius: "16px",
-        border: "1px solid var(--border)",
-        boxShadow: "var(--sh-card)",
-        overflowY: "auto",
-        padding: "20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "14px",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-mid)", paddingBottom: "10px", marginBottom: "8px" }}>
+      <div
+        style={{
+          background: "var(--white)",
+          borderRadius: "16px",
+          border: "1px solid var(--border)",
+          boxShadow: "var(--sh-card)",
+          overflowY: "auto",
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "14px",
+        }}
+      >
+        <div className="gui-chat-headrow">
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: connected ? "#10b981" : "#f59e0b" }}></div>
             <span style={{ fontWeight: 700, fontSize: "14px" }}>Drape Fashion Specialist</span>
           </div>
           <span style={{ fontSize: "11px", color: "var(--text-soft)" }}>⚡ Typically replies in minutes</span>
         </div>
+
 
         {messages.map((msg) => {
           const isMe = msg.sender_id === guestId;
@@ -372,14 +368,11 @@ function ChatContent() {
               }}
             >
               <div
+                className="gui-chat-bubble"
                 style={{
                   background: isMe ? "var(--navy)" : "#f1f5f9",
                   color: isMe ? "#fff" : "var(--text)",
-                  padding: "12px 16px",
                   borderRadius: isMe ? "16px 16px 2px 16px" : "16px 16px 16px 2px",
-                  fontSize: "14px",
-                  lineHeight: 1.5,
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
                 }}
               >
                 {msg.image_url && (

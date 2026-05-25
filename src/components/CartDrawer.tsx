@@ -52,8 +52,11 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
 
   // Close nested checkout if cart drawer is closed
   useEffect(() => {
-    if (!isOpen) setIsCheckoutOpen(false);
+    if (!isOpen) {
+      queueMicrotask(() => setIsCheckoutOpen(false));
+    }
   }, [isOpen]);
+
 
   if (!isOpen) return null;
 

@@ -9,6 +9,7 @@ import ReviewSystem from "./ReviewSystem";
 interface ProductModalProps {
   product: Product;
   onClose: () => void;
+  onOpenProduct?: (product: Product) => void;
 }
 
 interface SizeProfile {
@@ -28,8 +29,8 @@ interface SizeProfile {
 }
 
 
-export default function ProductModal({ product, onClose }: ProductModalProps) {
-  const { openProductModal } = useProductModal();
+export default function ProductModal({ product, onClose, onOpenProduct }: ProductModalProps) {
+  // const { openProductModal } = useProductModal();
   const [selectedImage, setSelectedImage] = useState(product.images[0]);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
@@ -323,11 +324,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               <h4>Complete the Look</h4>
               <div className="look-items">
                 {completeLookItems.map((look) => (
-                  <div 
-                    key={look.id} 
-                    className="look-item"
-                    onClick={() => openProductModal(look)}
-                  >
+                 <div
+                   key={look.id} 
+                   className="look-item"
+                   onClick={() => {
+                     onOpenProduct?.(look);
+                   }}
+                 >
                     <Image src={look.images[0]} alt={look.name} width={100} height={120} unoptimized />
                     <p style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
                       {look.name}

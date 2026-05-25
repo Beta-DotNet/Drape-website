@@ -142,7 +142,7 @@ function AdminChatContent() {
             });
             if (newMsg.sender_id === custId) {
               // Mark as read in DB
-              supabase
+              void (supabase as any)
                 .from("messages")
                 .update({ status: "read" })
                 .eq("id", newMsg.id)
@@ -181,11 +181,11 @@ function AdminChatContent() {
           .map((m) => m.id);
 
         if (unreadIds.length > 0) {
-          await supabase
+          await (supabase as any)
             .from("messages")
             .update({ status: "read" })
             .in("id", unreadIds);
-          
+
           setThreads((prev) =>
             prev.map((t) =>
               t.customerId === selectedCustomerId ? { ...t, unreadCount: 0 } : t
@@ -296,20 +296,22 @@ function AdminChatContent() {
     setMessages((prev) => [...prev, newMsg]);
 
     try {
-      const { error } = await supabase.from("messages").insert([
-        {
-          id: newMsg.id,
-          sender_id: newMsg.sender_id,
-          receiver_id: newMsg.receiver_id,
-          content: newMsg.content,
-          image_url: newMsg.image_url,
-          status: "sent",
-          product_id: messages[0]?.product_id || null,
-        },
-      ]);
+      const { error } = await (supabase as any)
+        .from("messages")
+        .insert([
+          {
+            id: newMsg.id,
+            sender_id: newMsg.sender_id,
+            receiver_id: newMsg.receiver_id,
+            content: newMsg.content,
+            image_url: newMsg.image_url,
+            status: "sent",
+            product_id: messages[0]?.product_id || null,
+          },
+        ]);
       if (error) throw error;
     } catch (err) {
-      console.warn("Supabase reply save skipped (mock sandbox mode).");
+      console.warn("Supabase reply save skipped (mock sandbox mode).", err);
     }
   };
 

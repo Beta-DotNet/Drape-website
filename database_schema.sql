@@ -108,8 +108,9 @@ ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.shona_dictionary ENABLE ROW LEVEL SECURITY;
 
--- Profiles: Users can read/update their own profile
+-- Profiles: Users can read/insert/update their own profile
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Products: Anyone can read, only admins can modify
@@ -177,3 +178,32 @@ CREATE POLICY "Users can send messages" ON public.messages FOR INSERT WITH CHECK
 alter publication supabase_realtime add table public.deliveries;
 alter publication supabase_realtime add table public.messages;
 alter publication supabase_realtime add table public.orders;
+
+-- ==========================================
+-- 7. REALTIME BROADCAST QUEUE + TRIGGER
+-- ==========================================
+-- Supabase Realtime broadcasts require a server-side mechanism.
+-- This table + trigger is a common pattern: enqueue a payload row, trigger publishes.
+
+CREATE TABLE IF NOT EXISTS public.realtime_broadcast_queue (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  channel text NOT NULL,
+  event text NOT NULL,
+  payload jsonb NOT NULL,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.realtime_broadcast_queue ENABLE ROW LEVEL SECURITY;
+
+-- Only admins can insert into the queue
+CREATE POLICY "Admins can enqueue broadcasts" ON public.realtime_broadcast_queue
+FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM public.profiles WHERE public.profiles.id = auth.uid() AND public.profiles.role = 'admin')
+);
+
+-- Disable all other access (keep it tight)
+CREATE POLICY "Disable select" ON public.realtime_broadcast_queue FOR SELECT USING (false);
+CREATE POLICY "Disable update" ON public.realtime_broadcast_queue FOR UPDATE USING (false);
+CREATE POLICY "Disable delete" ON public.realtime_broadcast_queue FOR DELETE USING (false);
+
+ALTER PUBLICATION supabase_realtime ADD TABLE public.realtime_broadcast_queue;

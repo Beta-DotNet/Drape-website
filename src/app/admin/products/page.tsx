@@ -5,6 +5,7 @@ import { DEFAULT_PRODUCTS } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
 type ProductRow = {
+
   id: number;
   name: string;
   brand: string;
@@ -24,21 +25,13 @@ type ProductRow = {
   tags: string[] | null;
 };
 
-function toStringList(v: unknown): string[] {
-  if (!v) return [];
-  if (Array.isArray(v)) return v.map(String);
-  return String(v)
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
 function csvToArray(input: string): string[] {
   return input
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
 }
+
 
 const LOCAL_PRODUCTS_STORAGE_KEY = "drape-admin-products";
 const isSupabaseConfigured =
@@ -115,6 +108,13 @@ type NoticeState = {
 
 function formatCurrency(value: number) {
   return value.toLocaleString("en-ZA", { style: "currency", currency: "ZAR" });
+}
+
+function isSupabaseSchemaError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  const code = typeof error === "object" && error !== null && "code" in error ? String((error as { code?: unknown }).code) : "";
+
+  return code === "42P01" || message.includes("Could not find the table") || message.includes("schema cache");
 }
 
 type ProductFormState = {
@@ -197,6 +197,12 @@ function AdminProductsContent() {
 
   const lastLoadedAtRef = useRef<number>(0);
 
+  const closeModals = () => {
+    setCreateOpen(false);
+    setEditOpen(false);
+    setActiveId(null);
+  };
+
   useEffect(() => {
     if (!createOpen && !editOpen) return;
 
@@ -211,6 +217,7 @@ function AdminProductsContent() {
   }, [createOpen, editOpen]);
 
   const filteredProducts = useMemo(() => {
+
     const q = filter.trim().toLowerCase();
     if (!q) return products;
     return products.filter((p) => {
@@ -222,13 +229,13 @@ function AdminProductsContent() {
   const loadProducts = async () => {
     setLoading(true);
     setError(null);
+    setNotice(null);
 
     try {
       if (!isSupabaseConfigured) {
         const localProducts = readLocalProducts();
         setProducts(localProducts);
         lastLoadedAtRef.current = Date.now();
-        setLoading(false);
         return;
       }
 
@@ -237,20 +244,42 @@ function AdminProductsContent() {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        if (isSupabaseSchemaError(error)) {
+          const localProducts = readLocalProducts();
+          setProducts(localProducts);
+          setNotice({ tone: "info", text: "Supabase schema is unavailable. Showing local product data." });
+          lastLoadedAtRef.current = Date.now();
+          return;
+        }
+
+        throw error;
+      }
+
       setProducts((data as ProductRow[]) || []);
       lastLoadedAtRef.current = Date.now();
-    } catch (e: any) {
-      setError(e?.message || "Failed to load products");
+    } catch (e: unknown) {
+      if (isSupabaseSchemaError(e)) {
+        setProducts(readLocalProducts());
+        setNotice({ tone: "info", text: "Supabase schema is unavailable. Showing local product data." });
+        return;
+      }
+
+      setError(e instanceof Error ? e.message : "Failed to load products");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Avoid calling setState synchronously within effect body by starting async work in a microtask
+    const run = async () => {
+      await loadProducts();
+    };
+    void run();
   }, []);
+
+
 
   const openCreate = () => {
     setNotice(null);
@@ -285,12 +314,6 @@ function AdminProductsContent() {
     });
   };
 
-  const closeModals = () => {
-    setCreateOpen(false);
-    setEditOpen(false);
-    setActiveId(null);
-  };
-
   const validateForm = () => {
     const name = form.name.trim();
     const brand = form.brand.trim();
@@ -317,31 +340,29 @@ function AdminProductsContent() {
 
     try {
       if (!isSupabaseConfigured) {
-        setProducts((prev) => {
-          const nextProduct: ProductRow = {
-            id: getNextLocalProductId(prev),
-            name: form.name.trim(),
-            brand: form.brand.trim(),
-            category: form.category.trim(),
-            gender: form.gender.trim() || "Unisex",
-            price: Number(form.price),
-            original_price: form.original_price.trim() ? Number(form.original_price) : null,
-            images: csvToArray(form.imagesCSV),
-            colors: csvToArray(form.colorCSV),
-            sizes: csvToArray(form.sizeCSV),
-            in_stock: form.in_stock,
-            rating: null,
-            reviews: null,
-            fabric: form.fabric.trim() || null,
-            care: form.care.trim() || null,
-            description: form.description.trim() || null,
-            tags: [],
-          };
+        const nextProduct: ProductRow = {
+          id: getNextLocalProductId(products),
+          name: form.name.trim(),
+          brand: form.brand.trim(),
+          category: form.category.trim(),
+          gender: form.gender.trim() || "Unisex",
+          price: Number(form.price),
+          original_price: form.original_price.trim() ? Number(form.original_price) : null,
+          images: csvToArray(form.imagesCSV),
+          colors: csvToArray(form.colorCSV),
+          sizes: csvToArray(form.sizeCSV),
+          in_stock: form.in_stock,
+          rating: null,
+          reviews: null,
+          fabric: form.fabric.trim() || null,
+          care: form.care.trim() || null,
+          description: form.description.trim() || null,
+          tags: [],
+        };
 
-          const nextProducts = [nextProduct, ...prev];
-          persistLocalProducts(nextProducts);
-          return nextProducts;
-        });
+        const nextProducts = [nextProduct, ...products];
+        persistLocalProducts(nextProducts);
+        setProducts(nextProducts);
 
         setNotice({ tone: "success", text: "Product created successfully." });
         closeModals();
@@ -349,6 +370,7 @@ function AdminProductsContent() {
       }
 
       const payload: Partial<ProductRow> = {
+
         name: form.name.trim(),
         brand: form.brand.trim(),
         category: form.category.trim(),
@@ -364,15 +386,20 @@ function AdminProductsContent() {
         description: form.description.trim() || null,
       };
 
-      const { data, error } = await supabase.from("products").insert(payload).select("*").single();
+      const { data, error } = await (supabase as any)
+        .from("products")
+        .insert(payload)
+        .select("*")
+        .single();
       if (error) throw error;
 
       setProducts((prev) => [data as ProductRow, ...prev]);
       setNotice({ tone: "success", text: "Product created successfully." });
       closeModals();
-    } catch (e: any) {
+    } catch (e: unknown) {
       setNotice(null);
-      setError(e?.message || "Failed to create product");
+      const message = e instanceof Error ? e.message : "Failed to create product";
+      setError(message);
     } finally {
       setSaving(false);
     }
@@ -439,7 +466,7 @@ function AdminProductsContent() {
         description: form.description.trim() || null,
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("products")
         .update(payload)
         .eq("id", activeId)
@@ -451,9 +478,10 @@ function AdminProductsContent() {
       setProducts((prev) => prev.map((p) => (p.id === activeId ? (data as ProductRow) : p)));
       setNotice({ tone: "success", text: "Product updated successfully." });
       closeModals();
-    } catch (e: any) {
+    } catch (e: unknown) {
       setNotice(null);
-      setError(e?.message || "Failed to update product");
+      const message = e instanceof Error ? e.message : "Failed to update product";
+      setError(message);
     } finally {
       setSaving(false);
     }
@@ -482,9 +510,10 @@ function AdminProductsContent() {
       if (error) throw error;
       setProducts((prev) => prev.filter((p) => p.id !== id));
       setNotice({ tone: "success", text: "Product deleted successfully." });
-    } catch (e: any) {
+    } catch (e: unknown) {
       setNotice(null);
-      setError(e?.message || "Failed to delete product");
+      const message = e instanceof Error ? e.message : "Failed to delete product";
+      setError(message);
     } finally {
       setDeletingId(null);
     }

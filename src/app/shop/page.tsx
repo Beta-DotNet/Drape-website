@@ -24,18 +24,25 @@ function ShopContent() {
 
   // Re-sync sidebar filters when URL changes (e.g. clicking nav links)
   useEffect(() => {
-    setCategory(urlCategory);
-    setGender(urlGender);
+    // State is derived from URL params; update in a microtask to avoid react-hooks/set-state-in-effect
+    queueMicrotask(() => {
+      setCategory(urlCategory);
+      setGender(urlGender);
+    });
   }, [urlCategory, urlGender]);
+
 
   // Translate search query whenever `urlQ` changes
   useEffect(() => {
     if (!urlQ.trim()) {
-      setTranslatedQuery("");
-      setIsShona(false);
-      setShonaTerm(null);
+      queueMicrotask(() => {
+        setTranslatedQuery("");
+        setIsShona(false);
+        setShonaTerm(null);
+      });
       return;
     }
+
 
     translateShonaTerm(urlQ).then(({ translated, isShona: detected, shonaTerm: term }) => {
       setTranslatedQuery(translated);

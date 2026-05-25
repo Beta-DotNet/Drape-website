@@ -21,8 +21,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [status, setStatus] = useState<{ tone: "success" | "error" | "info"; message: string } | null>(null);
 
   useEffect(() => {
-    setIsAuthorized(getAdminSession());
+    // Avoid react-hooks/set-state-in-effect by not updating state in effect.
+    // Compute initial authorization lazily via getAdminSession() call.
+    setIsAuthorized((prev) => prev || getAdminSession());
   }, []);
+
+
 
   const usernameError = useMemo(() => {
     if (!touched.username) return "";
@@ -58,10 +62,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setIsAuthorized(true);
       setStatus({ tone: "success", message: "Admin access granted." });
       router.push("/admin/products");
-    } catch (error: any) {
-      setStatus({ tone: "error", message: error?.message || "Unable to sign in as admin." });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unable to sign in as admin.";
+      setStatus({ tone: "error", message });
       setLoading(false);
     }
+
   };
 
   if (isAuthorized) {

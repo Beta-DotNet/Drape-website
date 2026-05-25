@@ -7,8 +7,18 @@ function makeErrorResult(message: string) {
   return Promise.resolve({ data: null, error: { message } });
 }
 
-function createFallbackQueryBuilder() {
-  const builder: Record<string, any> = {
+type FallbackQueryBuilder = {
+  select: () => FallbackQueryBuilder;
+  order: () => FallbackQueryBuilder;
+  eq: () => FallbackQueryBuilder;
+  single: () => Promise<{ data: unknown; error: { message: string } | null }>;
+  insert: () => Promise<{ data: unknown; error: { message: string } | null }>;
+  update: () => Promise<{ data: unknown; error: { message: string } | null }>;
+  delete: () => Promise<{ data: unknown; error: { message: string } | null }>;
+};
+
+function createFallbackQueryBuilder(): FallbackQueryBuilder {
+  const builder: FallbackQueryBuilder = {
     select: () => builder,
     order: () => builder,
     eq: () => builder,
@@ -20,6 +30,7 @@ function createFallbackQueryBuilder() {
 
   return builder;
 }
+
 
 function createFallbackClient() {
   const fallbackChannel = {
@@ -38,8 +49,11 @@ function createFallbackClient() {
     removeChannel: () => undefined,
     auth: {
       signInWithOAuth: () => makeErrorResult("Supabase auth is unavailable until a valid anon key is configured."),
+      signInWithPassword: () => makeErrorResult("Supabase auth is unavailable until a valid anon key is configured."),
+      signUp: () => makeErrorResult("Supabase auth is unavailable until a valid anon key is configured."),
       signOut: () => Promise.resolve({ error: null }),
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getUser: () => Promise.resolve({ data: { user: null }, error: { message: "Supabase auth is unavailable until a valid anon key is configured." } }),
     },
   };
 }
@@ -53,4 +67,5 @@ const hasValidSupabaseConfig =
 
 export const supabase = (hasValidSupabaseConfig
   ? createClient(supabaseUrl, supabaseKey)
-  : createFallbackClient()) as any;
+  : createFallbackClient()) as unknown as ReturnType<typeof createClient>;
+

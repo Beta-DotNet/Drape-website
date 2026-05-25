@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     if (status === "Paid" || status === "Awaiting Delivery" || status === "Delivered") {
       // Update our database via Supabase
-      const { error: orderError } = await supabase
+      const { error: orderError } = await (supabase as any)
         .from("orders")
         .update({ status: "Paid" })
         .eq("id", reference);
@@ -37,17 +37,17 @@ export async function POST(req: Request) {
         console.error(`Failed to update order ${reference} status:`, orderError.message);
       } else {
         console.log(`Order ${reference} is now Paid`);
-        
+
         // Setup initial delivery status in deliveries table
-        const { error: deliveryError } = await supabase
+        const { error: deliveryError } = await (supabase as any)
           .from("deliveries")
           .insert([
             {
               order_id: reference,
-              status: "Preparing"
-            }
+              status: "Preparing",
+            },
           ]);
-        
+
         if (deliveryError) {
           console.error(`Failed to create delivery for order ${reference}:`, deliveryError.message);
         } else {

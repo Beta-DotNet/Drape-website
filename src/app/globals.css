@@ -217,6 +217,35 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 .view.active{display:block}
 
 /* ============================================================
+   5.5. Golden-ratio UI utilities (non-breaking)
+   ============================================================ */
+:root{
+  /* Golden ratio */
+  --phi: 1.618;
+  /* Type scale (kept subtle to avoid breaking layouts) */
+  --fs-1: 0.95rem;
+  --fs-2: 1.05rem;
+  --fs-3: 1.16rem;
+  --fs-4: 1.35rem;
+  --fs-5: 1.55rem;
+  --fs-6: 1.8rem;
+  --lh-tight: 1.08;
+  --lh-body: 1.6;
+}
+
+.gp-title{font-family:var(--font-h);letter-spacing:-.02em;line-height:var(--lh-tight)}
+.gp-kicker{font-family:var(--font-h);font-weight:800;letter-spacing:.15em;text-transform:uppercase;font-size:.76rem;color:var(--text-soft)}
+.gp-card{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--sh-card)}
+.gp-section{padding: clamp(20px, 2.8vw, 28px)}
+.gp-muted{color:var(--text-mid)}
+.gp-label{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-soft)}
+.gp-btn-soft{background:rgba(26,58,82,0.06);border:1.5px solid rgba(26,58,82,0.14)}
+
+/* Consistent focus ring for custom interactive elements */
+.gp-focus-ring:focus-visible{outline:3px solid rgba(249,211,67,0.42);outline-offset:2px}
+
+
+/* ============================================================
    6. BUTTONS
    ============================================================ */
 .btn{

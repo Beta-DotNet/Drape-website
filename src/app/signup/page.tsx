@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { syncUserProfile } from "@/lib/profile-sync";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -83,16 +84,50 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : "http://localhost:3000/auth/callback";
+      const { data, error } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: {
+            full_name: form.fullName,
+            newsletter: form.newsletter,
+          },
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.session) {
+        const profileError = await syncUserProfile(data.session.user);
+        if (profileError) {
+          throw profileError;
+        }
+      }
+
+      if (data.session) {
+        setStatus({
+          tone: "success",
+          message: form.newsletter
+            ? "Account created. You’re subscribed to drape updates."
+            : "Account created. Your new account is ready to use.",
+        });
+        router.push("/profile");
+        return;
+      }
+
+      setLoading(false);
       setStatus({
         tone: "success",
-        message: form.newsletter
-          ? "Account created. You’re subscribed to drape updates."
-          : "Account created. Your new account is ready to use.",
+        message:
+          "Account created. Please check your inbox and confirm your email address to finish signing in.",
       });
-      router.push("/profile");
-    } catch {
-      setStatus({ tone: "error", message: "Sign-up is temporarily unavailable. Please try again." });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Sign-up is temporarily unavailable. Please try again.";
+      setStatus({ tone: "error", message });
       setLoading(false);
     }
   };
@@ -122,7 +157,7 @@ export default function SignupPage() {
     } catch (error: any) {
       setStatus({
         tone: "error",
-        message: error?.message || "Social sign-up is currently unavailable in demo mode.",
+        message: error?.message || "Social sign-up is currently unavailable. Please check your provider configuration.",
       });
       setProviderLoading(null);
     }
@@ -335,7 +370,7 @@ export default function SignupPage() {
             </button>
           </div>
 
-          <p className="auth-note">For demo purposes, your details are validated locally and no passwords are stored in plain text.</p>
+          <p className="auth-note">Your password is handled by Supabase Auth and your account will be created once you confirm your email address.</p>
         </div>
       </div>
     </section>

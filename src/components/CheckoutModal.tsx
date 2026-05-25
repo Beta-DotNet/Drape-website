@@ -68,7 +68,7 @@ export default function CheckoutModal({
             }
 
             try {
-              const { data: orderData, error } = await supabase
+              const { data: orderData, error } = await (supabase as any)
                 .from("orders")
                 .select("status")
                 .eq("id", checkOrderId)
@@ -97,7 +97,7 @@ export default function CheckoutModal({
   };
 
   return (
-    <div className="checkout-modal" style={{ display: "flex" }} role="dialog">
+    <div className="checkout-modal active" role="dialog">
       <div className="checkout-inner">
         <div className="checkout-header">
           <span className="checkout-title">Checkout</span>

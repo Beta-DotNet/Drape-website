@@ -2,10 +2,16 @@
 
 import { VS_PRESETS, DEFAULT_PRODUCTS } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function VisualSearchPage() {
   const [results, setResults] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const showResults = () => setResults(true);
+
 
   return (
     <section id="view-visual-search" className="view active">
@@ -18,38 +24,108 @@ export default function VisualSearchPage() {
           </p>
         </div>
 
-        <div className="vs-upload-zone" id="vs-upload-zone">
-          <input type="file" id="vs-file-input" accept="image/*" />
-          <div className="vs-upload-icon">
-            <img src="/images/instagram-search-icon.svg" alt="Upload" style={{ width: 28, height: 28 }} />
-          </div>
-          <h3>Drop your photo here</h3>
-          <p>Or click to browse &bull; JPG, PNG, WEBP supported</p>
+        <div className="vs-upload-zone" id="vs-upload-zone" role="group" aria-label="Upload a photo">
+          <input
+            ref={fileInputRef}
+            type="file"
+            id="vs-file-input"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              setUploadError(null);
+              const f = e.target.files?.[0] ?? null;
+              if (!f) {
+                setSelectedFileName(null);
+                return;
+              }
+              if (!/^image\//.test(f.type)) {
+                setUploadError("Please select an image file.");
+                setSelectedFileName(null);
+                return;
+              }
+              setSelectedFileName(f.name);
+              // Note: currently results are demo/static; this only improves UX + accessibility.
+              setResults(false);
+              setTimeout(() => showResults(), 150);
+            }}
+          />
+
           <button
-            className="btn btn-navy btn-sm"
-            style={{ marginTop: "16px", position: "relative", zIndex: 1 }}
-            onClick={() => document.getElementById("vs-file-input")?.click()}
+            type="button"
+            className="vs-upload-zone"
+            style={{
+              // keeps existing layout while making the whole area keyboard/click accessible
+              all: "unset",
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              cursor: "pointer",
+            }}
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            aria-label="Upload a photo"
           >
-            Choose File
+            <div className="vs-upload-icon">
+              <img src="/images/instagram-search-icon.svg" alt="Upload" style={{ width: 28, height: 28 }} />
+            </div>
+            <h3>Drop your photo here</h3>
+            <p>Or click to browse &bull; JPG, PNG, WEBP supported</p>
+
+            {selectedFileName && (
+              <p className="vs-upload-filename" style={{ marginTop: 10, fontSize: 12, opacity: 0.85 }}>
+                Selected: <strong>{selectedFileName}</strong>
+              </p>
+            )}
+            {uploadError && (
+              <p
+                className="vs-upload-error"
+                role="alert"
+                style={{ marginTop: 10, fontSize: 12, color: "#b45309", fontWeight: 700 }}
+              >
+                {uploadError}
+              </p>
+            )}
+
+            <button
+              className="btn btn-navy btn-sm"
+              style={{ marginTop: "16px", position: "relative", zIndex: 1 }}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
+            >
+              Choose File
+            </button>
           </button>
         </div>
 
+
         <p className="vs-section-label">&mdash; or try a style preset &mdash;</p>
-        <div className="vs-presets" id="vs-presets">
+        <div className="vs-presets" id="vs-presets" role="list" aria-label="Style presets">
           {VS_PRESETS.map((preset, i) => (
-            <div
+            <button
               key={i}
+              type="button"
               className="vs-preset-card"
-              onClick={() => setResults(true)}
+              onClick={showResults}
+              role="listitem"
+              aria-label={`Try preset: ${preset.label}`}
             >
               <img src={preset.img} alt={preset.label} />
               <div className="vs-preset-label">{preset.label}</div>
-            </div>
+            </button>
           ))}
         </div>
 
+
         {results && (
-          <div id="vs-results-section">
+          <div id="vs-results-section" aria-live="polite">
             <div className="vs-results-title" id="vs-results-title">
               Showing matches for your style
             </div>
@@ -60,6 +136,7 @@ export default function VisualSearchPage() {
             </div>
           </div>
         )}
+
       </div>
     </section>
   );
