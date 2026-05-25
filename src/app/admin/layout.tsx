@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DEFAULT_ADMIN_PASSWORD,
@@ -13,20 +13,12 @@ import {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(() => getAdminSession());
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ username: "", password: "" });
   const [touched, setTouched] = useState({ username: false, password: false });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ tone: "success" | "error" | "info"; message: string } | null>(null);
-
-  useEffect(() => {
-    // Avoid react-hooks/set-state-in-effect by not updating state in effect.
-    // Compute initial authorization lazily via getAdminSession() call.
-    setIsAuthorized((prev) => prev || getAdminSession());
-  }, []);
-
-
 
   const usernameError = useMemo(() => {
     if (!touched.username) return "";
@@ -60,6 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       setAdminSession(true);
       setIsAuthorized(true);
+      setLoading(false);
       setStatus({ tone: "success", message: "Admin access granted." });
       router.push("/admin/products");
     } catch (error: unknown) {

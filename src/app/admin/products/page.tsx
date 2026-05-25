@@ -36,6 +36,8 @@ function csvToArray(input: string): string[] {
 const LOCAL_PRODUCTS_STORAGE_KEY = "drape-admin-products";
 const isSupabaseConfigured =
   typeof process !== "undefined" &&
+  typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+  process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
   typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0 &&
   !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.startsWith("sb_secret_");
@@ -231,9 +233,10 @@ function AdminProductsContent() {
     setError(null);
     setNotice(null);
 
+    const localProducts = readLocalProducts();
+
     try {
       if (!isSupabaseConfigured) {
-        const localProducts = readLocalProducts();
         setProducts(localProducts);
         lastLoadedAtRef.current = Date.now();
         return;
@@ -246,7 +249,6 @@ function AdminProductsContent() {
 
       if (error) {
         if (isSupabaseSchemaError(error)) {
-          const localProducts = readLocalProducts();
           setProducts(localProducts);
           setNotice({ tone: "info", text: "Supabase schema is unavailable. Showing local product data." });
           lastLoadedAtRef.current = Date.now();
@@ -256,16 +258,20 @@ function AdminProductsContent() {
         throw error;
       }
 
-      setProducts((data as ProductRow[]) || []);
-      lastLoadedAtRef.current = Date.now();
-    } catch (e: unknown) {
-      if (isSupabaseSchemaError(e)) {
-        setProducts(readLocalProducts());
-        setNotice({ tone: "info", text: "Supabase schema is unavailable. Showing local product data." });
-        return;
+      if (!Array.isArray(data)) {
+        throw new Error("Supabase returned an invalid response.");
       }
 
-      setError(e instanceof Error ? e.message : "Failed to load products");
+      setProducts(data as ProductRow[]);
+      lastLoadedAtRef.current = Date.now();
+    } catch (e: unknown) {
+      const fallbackMessage = isSupabaseSchemaError(e)
+        ? "Supabase schema is unavailable. Showing local product data."
+        : "Supabase is unavailable right now. Showing local product data.";
+
+      setProducts(localProducts);
+      setNotice({ tone: "info", text: fallbackMessage });
+      setError(null);
     } finally {
       setLoading(false);
     }
