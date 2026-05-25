@@ -3,7 +3,6 @@
 import { useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { DEFAULT_ADMIN_PASSWORD, DEFAULT_ADMIN_USERNAME, isValidAdminCredentials, setAdminSession } from "@/lib/admin-auth";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,10 +22,6 @@ function LoginContent() {
   const [providerLoading, setProviderLoading] = useState<string | null>(null);
   const [status, setStatus] = useState<{ tone: "success" | "error" | "info"; message: string } | null>(null);
 
-  const [adminForm, setAdminForm] = useState({ username: "", password: "" });
-  const [adminLoading, setAdminLoading] = useState(false);
-  const [adminTouched, setAdminTouched] = useState({ username: false, password: false });
-
   const emailError = useMemo(() => {
     if (!touched.email) return "";
     if (!form.email) return "Enter your email address.";
@@ -39,9 +34,6 @@ function LoginContent() {
     if (!form.password) return "Enter your password.";
     return "";
   }, [form.password, touched.password]);
-
-  const adminUsernameError = !adminForm.username.trim() && adminTouched.username ? "Enter your admin username." : "";
-  const adminPasswordError = !adminForm.password && adminTouched.password ? "Enter your admin password." : "";
 
   const updateForm = (field: keyof typeof form, value: string | boolean) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -67,33 +59,6 @@ function LoginContent() {
     } catch {
       setStatus({ tone: "error", message: "Sign-in is temporarily unavailable. Please try again." });
       setLoading(false);
-    }
-  };
-
-  const handleAdminLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    setAdminTouched({ username: true, password: true });
-    setStatus(null);
-
-    if (adminUsernameError || adminPasswordError) {
-      setStatus({ tone: "error", message: "Enter both admin credentials to continue." });
-      return;
-    }
-
-    setAdminLoading(true);
-
-    try {
-      if (!isValidAdminCredentials(adminForm.username, adminForm.password)) {
-        throw new Error("Invalid admin credentials.");
-      }
-
-      setAdminSession(true);
-      setStatus({ tone: "success", message: "Admin access granted." });
-      router.push(redirectTo);
-    } catch (error: any) {
-      setStatus({ tone: "error", message: error?.message || "Unable to sign in as admin." });
-      setAdminLoading(false);
     }
   };
 
@@ -278,53 +243,6 @@ function LoginContent() {
             </button>
           </div>
 
-          <div className="auth-subcard">
-            <p className="auth-subcard-title">Admin access</p>
-            <p className="auth-subcard-copy">Use your admin credentials to open the management area.</p>
-            <form className="auth-form auth-admin-form" onSubmit={handleAdminLogin} noValidate>
-              <div className="auth-field">
-                <label htmlFor="admin-username">Username</label>
-                <input
-                  id="admin-username"
-                  type="text"
-                  autoComplete="username"
-                  placeholder="Enter your admin username"
-                  value={adminForm.username}
-                  onChange={(event) => setAdminForm((current) => ({ ...current, username: event.target.value }))}
-                  onBlur={() => setAdminTouched((current) => ({ ...current, username: true }))}
-                  aria-invalid={Boolean(adminUsernameError)}
-                  aria-describedby={adminUsernameError ? "admin-username-error" : undefined}
-                />
-                <p id="admin-username-error" className="auth-error-text" aria-live="polite">
-                  {adminUsernameError}
-                </p>
-              </div>
-
-              <div className="auth-field">
-                <label htmlFor="admin-password">Password</label>
-                <input
-                  id="admin-password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Enter your admin password"
-                  value={adminForm.password}
-                  onChange={(event) => setAdminForm((current) => ({ ...current, password: event.target.value }))}
-                  onBlur={() => setAdminTouched((current) => ({ ...current, password: true }))}
-                  aria-invalid={Boolean(adminPasswordError)}
-                  aria-describedby={adminPasswordError ? "admin-password-error" : undefined}
-                />
-                <p id="admin-password-error" className="auth-error-text" aria-live="polite">
-                  {adminPasswordError}
-                </p>
-              </div>
-
-              <p className="auth-admin-hint">Demo admin credentials: {DEFAULT_ADMIN_USERNAME} / {DEFAULT_ADMIN_PASSWORD}</p>
-
-              <button type="submit" className="btn btn-gold btn-block" disabled={adminLoading}>
-                {adminLoading ? "Checking credentials…" : "Admin sign in"}
-              </button>
-            </form>
-          </div>
         </div>
       </div>
     </section>

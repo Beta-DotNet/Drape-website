@@ -7,18 +7,18 @@ import { useRouter } from "next/navigation";
 import CartDrawer from "./CartDrawer";
 import { useProductModal } from "./ProductModalContext";
 import { getSearchSuggestions, SearchSuggestions } from "@/lib/search";
-import { getAdminSession } from "@/lib/admin-auth";
 
 export default function Header() {
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { openProductModal } = useProductModal();
   
   const [search, setSearch] = useState("");
   const [cartCount, setCartCount] = useState(0); 
   const [wishlistCount] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   
   // Suggestions dropdown state
   const [suggestions, setSuggestions] = useState<SearchSuggestions | null>(null);
@@ -37,17 +37,10 @@ export default function Header() {
       }
     };
 
-    const updateAdminState = () => {
-      setIsAdminLoggedIn(getAdminSession());
-    };
-
     updateCartCount(); // Initial load
-    updateAdminState();
     window.addEventListener("cart_updated", updateCartCount);
-    window.addEventListener("storage", updateAdminState);
     return () => {
       window.removeEventListener("cart_updated", updateCartCount);
-      window.removeEventListener("storage", updateAdminState);
     };
   }, []);
 
@@ -72,17 +65,19 @@ export default function Header() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Click outside and Escape key to close suggestions dropdown
+  // Click outside and Escape key to close suggestions dropdown and collapse search
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
+        setIsSearchExpanded(false);
       }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setShowSuggestions(false);
+        setIsSearchExpanded(false);
       }
     };
 
@@ -99,6 +94,17 @@ export default function Header() {
     if (search.trim()) {
       router.push(`/shop?q=${encodeURIComponent(search.trim())}`);
       setShowSuggestions(false);
+      setIsSearchExpanded(false);
+    }
+  };
+
+  const handleSearchTriggerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!isSearchExpanded) {
+      e.preventDefault();
+      setIsSearchExpanded(true);
+      requestAnimationFrame(() => {
+        searchInputRef.current?.focus();
+      });
     }
   };
 
@@ -110,55 +116,101 @@ export default function Header() {
         </Link>
       </div>
 
-      <div className="header-search" ref={searchRef} style={{ position: "relative" }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: "flex", width: "100%", alignItems: "center" }}>
-          <button type="submit" className="s-icon" id="search-submit-btn" style={{ background: "transparent", border: "none" }}>
+      <div className="header-nav-wrap">
+        <nav className="header-nav">
+          <Link href="/" id="nav-home">Home</Link>
+          <Link href="/shop?gender=Men" id="nav-men">Men</Link>
+          <Link href="/shop?gender=Women" id="nav-women">Women</Link>
+          <Link href="/shop?category=Kids" id="nav-kids">Kids</Link>
+          <Link href="/shop" id="nav-shop">All</Link>
+          <Link href="/visual-search" id="nav-vs">🔍 Visual</Link>
+        </nav>
+      </div>
+
+      <div
+        className={`header-search ${isSearchExpanded ? "is-expanded" : ""}`}
+        ref={searchRef}
+        style={
+          isSearchExpanded
+            ? undefined
+            : {
+                width: 44,
+                minWidth: 44,
+                maxWidth: 44,
+                padding: "8px 10px"
+              }
+        }
+      >
+        <form onSubmit={handleSearchSubmit}>
+          <button
+            type="submit"
+            className="s-icon"
+            id="search-submit-btn"
+            aria-label="Search"
+            onClick={handleSearchTriggerClick}
+          >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
           </button>
           <input
+            ref={searchInputRef}
             type="text"
             id="search-input"
-            placeholder="Search brands, styles, or try Shona (e.g., shangu)…"
+            aria-label="Search products and brands"
+            placeholder="Search brands, styles, or try Shona…"
             autoComplete="off"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onFocus={() => {
+              setIsSearchExpanded(true);
               if (search.trim().length >= 2) {
                 setShowSuggestions(true);
               }
             }}
+            onBlur={(e) => {
+              const nextTarget = e.relatedTarget as Node | null;
+              if (nextTarget && searchRef.current?.contains(nextTarget)) {
+                return;
+              }
+              setIsSearchExpanded(false);
+            }}
           />
         </form>
-        <button className="vs-trigger-btn" id="vs-trigger-btn" title="Visual search — search by photo" onClick={() => router.push('/visual-search')}>
-          <img src="/images/instagram-search-icon.svg" alt="Visual search" style={{ width: 18, height: 18 }} />
+        <button
+          className="vs-trigger-btn"
+          id="vs-trigger-btn"
+          title="Visual search — search by photo"
+          aria-label="Visual search"
+          onClick={() => router.push('/visual-search')}
+        >
+          <img src="/images/instagram-search-icon.svg" alt="" aria-hidden="true" style={{ width: 18, height: 18 }} />
         </button>
 
         {/* Floating Autocomplete Popover Dropdown */}
         {showSuggestions && suggestions && (
-          <div 
+          <div
             className="search-suggestions-dropdown"
-            style={{ 
-              position: "absolute", 
-              top: "100%", 
-              left: 0, 
-              right: 0, 
-              marginTop: "8px", 
-              background: "rgba(15, 23, 42, 0.96)", 
-              backdropFilter: "blur(12px)", 
-              borderRadius: "12px", 
-              border: "1px solid rgba(255, 255, 255, 0.15)", 
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)", 
-              zIndex: 9999, 
-              overflow: "hidden" 
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              marginTop: "8px",
+              background: "rgba(15, 23, 42, 0.96)",
+              backdropFilter: "blur(12px)",
+              borderRadius: "12px",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
+              zIndex: 9999,
+              overflow: "hidden"
             }}
           >
             {/* Shona Translation Alert Header */}
             {suggestions.translatedQuery && (
-          <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(249, 211, 67, 0.12)", color: "var(--gold)", fontSize: "12px", display: "flex", gap: "6px", alignItems: "center", fontWeight: 600 }}>
-                <Image src="/images/material-symbols--star-rounded.svg" alt="Sparkle" width={16} height={16} />
+              <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(249, 211, 67, 0.12)", color: "var(--gold)", fontSize: "12px", display: "flex", gap: "6px", alignItems: "center", fontWeight: 600 }}>
+                <Image src="/images/material-symbols--star-rounded.svg" alt="" aria-hidden="true" width={16} height={16} />
                 <span>Translating Shona: <strong>&ldquo;{suggestions.shonaTerm}&rdquo;</strong> &rarr; <strong>&ldquo;{suggestions.translatedQuery}&rdquo;</strong></span>
               </div>
             )}
@@ -169,8 +221,8 @@ export default function Header() {
                 <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", marginBottom: "6px" }}>Categories</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                   {suggestions.categories.map((cat) => (
-                      <div 
-                      key={cat} 
+                    <div
+                      key={cat}
                       onClick={() => {
                         router.push(`/shop?category=${cat}`);
                         setShowSuggestions(false);
@@ -193,7 +245,7 @@ export default function Header() {
                 <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", marginBottom: "8px" }}>Products</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   {suggestions.products.map((prod) => (
-                    <div 
+                    <div
                       key={prod.id}
                       onClick={() => {
                         openProductModal(prod);
@@ -216,7 +268,6 @@ export default function Header() {
               </div>
             )}
 
-            {/* No matches */}
             {suggestions.categories.length === 0 && suggestions.products.length === 0 && (
               <div style={{ padding: "14px", fontSize: "13px", color: "rgba(255,255,255,0.5)", textAlign: "center" }}>
                 No matching categories or products found.
@@ -225,18 +276,6 @@ export default function Header() {
           </div>
         )}
       </div>
-
-      <nav className="header-nav">
-        <Link href="/" id="nav-home">Home</Link>
-        <Link href="/shop?gender=Men" id="nav-men">Men</Link>
-        <Link href="/shop?gender=Women" id="nav-women">Women</Link>
-        <Link href="/shop?category=Kids" id="nav-kids">Kids</Link>
-        <Link href="/shop" id="nav-shop">All</Link>
-        <Link href="/visual-search" id="nav-vs">🔍 Visual</Link>
-        {isAdminLoggedIn && (
-          <Link href="/admin" id="nav-admin" className="admin-link">⚙ Admin</Link>
-        )}
-      </nav>
 
       <div className="header-actions">
         <div className="icon-action" onClick={() => router.push("/profile")} title="Profile">
@@ -254,7 +293,6 @@ export default function Header() {
           {cartCount > 0 && <span className="badge" id="cart-badge">{cartCount}</span>}
         </div>
         <button className="btn-login" id="login-btn" onClick={() => router.push("/login")}>Log In</button>
-
       </div>
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
