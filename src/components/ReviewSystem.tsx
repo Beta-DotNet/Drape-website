@@ -166,6 +166,7 @@ export default function ReviewSystem({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [imageData, setImageData] = useState<string | null>(null);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -267,6 +268,16 @@ export default function ReviewSystem({
       setStatus({ tone: "success", text: "Image preview is ready." });
     } catch {
       setStatus({ tone: "error", text: "We could not process that image. Please try another file." });
+    }
+  };
+
+  const handleDropImage = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setIsDraggingImage(false);
+
+    const file = event.dataTransfer.files?.[0];
+    if (file) {
+      void handleImageUpload(file);
     }
   };
 
@@ -933,7 +944,23 @@ export default function ReviewSystem({
 
         <div className="review-field">
           <label className="review-label">Upload a photo</label>
-          <label className="review-upload-dropzone">
+          <label
+            className="review-upload-dropzone"
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsDraggingImage(true);
+            }}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setIsDraggingImage(true);
+            }}
+            onDragLeave={() => setIsDraggingImage(false)}
+            onDrop={handleDropImage}
+            style={{
+              borderColor: isDraggingImage ? "rgba(249, 211, 67, 0.9)" : undefined,
+              boxShadow: isDraggingImage ? "0 0 0 4px rgba(249, 211, 67, 0.12)" : undefined,
+            }}
+          >
             <div className="review-upload-row">
               <div>
                 <strong>Click or drop an image</strong>
@@ -946,7 +973,7 @@ export default function ReviewSystem({
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              hidden
+              style={{ display: "none" }}
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 if (file) {

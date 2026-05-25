@@ -36,6 +36,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [accordions, setAccordions] = useState({ details: true, fabric: false });
   const [sizeProfile, setSizeProfile] = useState<SizeProfile | null>(null);
   const [recommendedSize, setRecommendedSize] = useState<string>("");
+  const [toastMessage, setToastMessage] = useState("");
+  const toastTimeoutRef = useRef<number | null>(null);
 
   // Determine recommended size based on profile and product category
   const determineRecommendedSize = useCallback((profile: SizeProfile, prod: Product) => {
@@ -113,10 +115,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       }
       
       localStorage.setItem("drape_cart", JSON.stringify(cart));
-      
       // Dispatch cart updated event to refresh the Header cart badge
       window.dispatchEvent(new Event("cart_updated"));
-      alert(`${product.name} (Size ${selectedSize || "L"}) added to bag!`);
+      setToastMessage(`${product.name} (Size ${selectedSize || "L"}) added to bag!`);
+      if (toastTimeoutRef.current !== null) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+      toastTimeoutRef.current = window.setTimeout(() => {
+        setToastMessage("");
+      }, 2400);
     } catch (e) {
       console.error("Error adding to cart:", e);
     }
@@ -157,6 +164,28 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   return (
     <div className="product-modal active" role="dialog" aria-modal="true" style={{ overflow: "hidden" }}>
+      <div
+        style={{
+          position: "fixed",
+          right: 16,
+          bottom: 16,
+          zIndex: 2000,
+          padding: "12px 16px",
+          borderRadius: 999,
+          background: "rgba(15, 23, 42, 0.96)",
+          color: "#fff",
+          fontSize: 14,
+          fontWeight: 700,
+          boxShadow: "0 12px 30px rgba(15, 23, 42, 0.24)",
+          transform: toastMessage ? "translateY(0)" : "translateY(120%)",
+          opacity: toastMessage ? 1 : 0,
+          transition: "transform 220ms ease, opacity 220ms ease",
+          pointerEvents: "none",
+          maxWidth: 320,
+        }}
+      >
+        {toastMessage}
+      </div>
       {/* Overlay Backdrop */}
       <div 
         className="overlay-backdrop active" 
