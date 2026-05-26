@@ -62,12 +62,66 @@ function isWithinWindow(startDate: string | null | undefined, endDate: string | 
   return true;
 }
 
+type ReadabilityTone = "light" | "dark";
+
+async function detectImageTone(imageUrl: string): Promise<ReadabilityTone> {
+  if (!imageUrl) {
+    return "dark";
+  }
+
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+
+    image.onload = () => {
+      try {
+        const width = 48;
+        const height = 48;
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext("2d");
+        if (!context) {
+          resolve("dark");
+          return;
+        }
+
+        context.drawImage(image, 0, 0, width, height);
+        const pixels = context.getImageData(0, 0, width, height).data;
+
+        let luminanceSum = 0;
+        const sampleCount = pixels.length / 16;
+
+        for (let index = 0; index < pixels.length; index += 16) {
+          const red = pixels[index];
+          const green = pixels[index + 1];
+          const blue = pixels[index + 2];
+          luminanceSum += (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
+        }
+
+        const averageLuminance = luminanceSum / sampleCount;
+        resolve(averageLuminance > 0.76 ? "light" : "dark");
+      } catch {
+        resolve("dark");
+      }
+    };
+
+    image.onerror = () => {
+      resolve("dark");
+    };
+
+    image.src = imageUrl;
+  });
+}
+
 export default function PromoCarousel() {
   const router = useRouter();
   const [promotions, setPromotions] = useState<PromotionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [readabilityTone, setReadabilityTone] = useState<ReadabilityTone>("dark");
 
   useEffect(() => {
     let isMounted = true;
@@ -129,6 +183,41 @@ export default function PromoCarousel() {
   const safeCurrentIndex = promotions.length === 0 ? 0 : currentIndex % promotions.length;
   const activePromotion = useMemo(() => promotions[safeCurrentIndex] ?? null, [promotions, safeCurrentIndex]);
 
+  useEffect(() => {
+    if (!activePromotion?.image_url) {
+      // avoid state update if no image
+      return undefined;
+    }
+
+
+    let isMounted = true;
+
+    void detectImageTone(activePromotion.image_url).then((tone) => {
+      if (isMounted) {
+        setReadabilityTone(tone);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activePromotion?.image_url]);
+
+  const isLightImage = readabilityTone === "light";
+  const textPanelBackground = isLightImage
+    ? "linear-gradient(145deg, rgba(255,255,255,0.74) 0%, rgba(255,255,255,0.38) 70%, rgba(255,255,255,0.2) 100%)"
+    : "linear-gradient(145deg, rgba(15,23,42,0.82) 0%, rgba(15,23,42,0.55) 68%, rgba(15,23,42,0.34) 100%)";
+  const panelBorder = isLightImage ? "rgba(255,255,255,0.24)" : "rgba(255,255,255,0.14)";
+  const panelShadow = isLightImage
+    ? "0 24px 45px rgba(15,23,42,0.16)"
+    : "0 24px 45px rgba(15,23,42,0.28)";
+  const titleColor = isLightImage ? "#111827" : "#ffffff";
+  const descriptionColor = isLightImage ? "rgba(17,24,39,0.88)" : "rgba(246,240,227,0.95)";
+  const eyebrowColor = isLightImage ? "#111827" : "#f6e7c9";
+  const badgeBackground = isLightImage ? "rgba(255,255,255,0.8)" : "rgba(15,23,42,0.55)";
+  const badgeText = isLightImage ? "#111827" : "#f6e7c9";
+  const helperText = isLightImage ? "rgba(17,24,39,0.84)" : "rgba(255,255,255,0.92)";
+
   const nextSlide = () => {
     setCurrentIndex((previous) => (previous + 1) % Math.max(promotions.length, 1));
   };
@@ -182,6 +271,7 @@ export default function PromoCarousel() {
               <img
                 src={activePromotion.image_url}
                 alt={activePromotion.title}
+                crossOrigin="anonymous"
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
@@ -223,50 +313,83 @@ export default function PromoCarousel() {
                 insetInline: "1rem",
                 bottom: "1rem",
                 zIndex: 10,
-                maxWidth: "55%",
+                maxWidth: "min(100%, 560px)",
               }}
             >
-              <div className="rounded-[24px] border border-white/15 bg-[rgba(15,23,42,0.55)] p-4 backdrop-blur-sm sm:p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="inline-flex items-center rounded-full border border-white/20 bg-[rgba(15,23,42,0.55)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f6e7c9] backdrop-blur-sm sm:text-[12px]">
-                    Active promotion
-                  </div>
-                  <div className="rounded-full border border-white/20 bg-[rgba(15,23,42,0.55)] px-3 py-1 text-sm font-semibold text-white backdrop-blur-sm">
-                    {currentIndex + 1} / {promotions.length}
-                  </div>
-                </div>
+              <div
+                style={{
+                  borderRadius: "24px",
+                  border: `1px solid ${panelBorder}`,
+                  background: textPanelBackground,
+                  padding: "1rem",
+                  boxShadow: panelShadow,
 
-                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.22em] text-[#f5ddb3] sm:text-[12px]">
+                }}
+              >
+                <p
+                  className="mt-4"
+                  style={{
+                    fontSize: "0.75rem",
+                    fontWeight: 800,
+                    letterSpacing: "0.22em",
+                    textTransform: "uppercase",
+                    color: eyebrowColor,
+                  }}
+                >
                   Curated for your next drop
                 </p>
-                <h2 className="mt-3 text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-[2.4rem]">
+                <h2
+                  className="mt-3 text-2xl font-bold leading-tight sm:text-3xl lg:text-[2.4rem]"
+                  style={{ color: titleColor }}
+                >
                   {activePromotion.title}
                 </h2>
-                <p className="mt-3 text-sm leading-6 text-[#f6f0e3] sm:text-base">
+                <p
+                  className="mt-3 text-sm leading-6 sm:text-base"
+                  style={{ color: descriptionColor }}
+                >
                   {activePromotion.description}
                 </p>
 
-                <div className="mt-5 flex flex-wrap items-center gap-3">
+                <div className="mt-7 flex flex-wrap items-center gap-4">
                   <button
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation();
                       handleSlideClick(activePromotion.link_url);
                     }}
-                    className="inline-flex w-full items-center justify-center rounded-full bg-[#f5c96b] px-5 py-3 text-sm font-bold text-[#111827] shadow-[0_12px_35px_rgba(245,201,107,0.28)] transition hover:-translate-y-0.5 hover:bg-[#edd48d] sm:w-auto"
+                    className="inline-flex w-full items-center justify-center transition duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f9d343] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdf8] sm:w-auto"
+                    style={{
+                      borderRadius: "var(--r-pill)",
+                      background: "linear-gradient(135deg, #f7d463 0%, #f4b61f 100%)",
+                      border: "2px solid rgba(15,23,42,0.95)",
+                      padding: "9px 22px",
+                      fontFamily: "var(--font-h)",
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      color: "#111827",
+                      boxShadow: "0 18px 38px rgba(15,23,42,0.28), 0 0 0 4px rgba(249,211,67,0.16)",
+                    }}
                   >
                     {activePromotion.cta_text || "Shop now"}
                   </button>
-                  {activePromotion.link_url ? (
-                    <span className="text-sm font-medium text-white/90">
-                      Tap the button to explore the offer.
-                    </span>
-                  ) : null}
+
                 </div>
               </div>
             </div>
 
-            <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 sm:bottom-6">
+            <div
+              style={{
+                position: "absolute",
+                bottom: "16px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 10,
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
               <button
                 type="button"
                 aria-label="Previous promotion"
