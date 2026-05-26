@@ -2,6 +2,7 @@
 
 import { useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getDisplayUsernameFromUser, setStoredAuthSession } from "@/lib/auth-session";
 import { supabase } from "@/lib/supabase";
 import { syncUserProfile } from "@/lib/profile-sync";
 
@@ -67,6 +68,11 @@ function LoginContent() {
       if (profileError) {
         throw profileError;
       }
+
+      setStoredAuthSession({
+        username: getDisplayUsernameFromUser(data.user),
+        email: data.user.email ?? undefined,
+      });
 
       setStatus({ tone: "success", message: "Welcome back! You’re signed in." });
       router.push(redirectTo);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DEFAULT_ADMIN_PASSWORD,
@@ -13,12 +13,19 @@ import {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
-  const [isAuthorized, setIsAuthorized] = useState(() => getAdminSession());
+  const [authStatus, setAuthStatus] = useState<"loading" | "authorized" | "unauthorized">("loading");
   const [showPassword, setShowPassword] = useState(false);
+
   const [form, setForm] = useState({ username: "", password: "" });
   const [touched, setTouched] = useState({ username: false, password: false });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ tone: "success" | "error" | "info"; message: string } | null>(null);
+
+  useEffect(() => {
+    // Determine authorization only after client hydration.
+    setAuthStatus(getAdminSession() ? "authorized" : "unauthorized");
+  }, []);
+
 
   const usernameError = useMemo(() => {
     if (!touched.username) return "";
@@ -51,7 +58,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
 
       setAdminSession(true);
-      setIsAuthorized(true);
+      setAuthStatus("authorized");
+
       setLoading(false);
       setStatus({ tone: "success", message: "Admin access granted." });
       router.push("/admin/products");
@@ -63,9 +71,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   };
 
-  if (isAuthorized) {
+  if (authStatus === "loading") {
+    return (
+      <section className="auth-page-shell">
+
+        <div className="auth-page-grid" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+          <div className="auth-card" style={{ maxWidth: 640, margin: "0 auto", width: "100%", textAlign: "center" }}>
+            <div className="auth-card-header" style={{ justifyContent: "center", textAlign: "center" }}>
+              <div>
+                <p className="auth-brand">drape admin</p>
+                <h2 className="auth-card-title">Checking admin access…</h2>
+                <p className="auth-card-copy">We’re confirming your session before rendering the admin area.</p>
+              </div>
+            </div>
+            <div aria-live="polite" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, padding: "14px 0 8px" }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: "999px",
+                  border: "3px solid rgba(26,58,82,0.12)",
+                  borderTopColor: "var(--gold)",
+                  display: "inline-block",
+                  animation: "auth-spin 0.9s linear infinite",
+                }}
+              />
+              <span style={{ color: "var(--text-soft)", fontWeight: 700 }}>Loading admin session…</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (authStatus === "authorized") {
     return <>{children}</>;
   }
+
 
   return (
     <section className="auth-page-shell">

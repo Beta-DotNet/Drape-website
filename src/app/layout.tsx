@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ProductModalProvider } from "@/components/ProductModalContext";
+import ToastContainer from "@/components/ToastContainer";
 
 export const metadata: Metadata = {
   title: "drape — AI-Powered Fashion Marketplace",
@@ -23,6 +24,7 @@ export default function RootLayout({
             {children}
           </div>
           <Footer />
+          <ToastContainer />
         </ProductModalProvider>
       </body>
     </html>

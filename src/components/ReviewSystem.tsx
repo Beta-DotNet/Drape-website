@@ -62,8 +62,12 @@ const makeSeedReviews = (product: Product): ReviewRecord[] => {
     },
   ];
 
+  const fallbackId = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
   return base.map((review, index) => ({
-    id: `${product.id}-${index}-${crypto.randomUUID()}`,
+    id: `${product.id}-${index}-${fallbackId}`,
     productId: product.id,
     ...review,
   }));
@@ -157,11 +161,27 @@ export default function ReviewSystem({
   initialAverage = product.rating,
   initialCount = product.reviews,
 }: ReviewSystemProps) {
-  const [reviews, setReviews] = useState<ReviewRecord[]>([]);
+  const [reviews, setReviews] = useState<ReviewRecord[]>(() => {
+    const storedReviews = getStoredReviews(product.id);
+    return storedReviews.length > 0 ? storedReviews : makeSeedReviews(product);
+  });
   const [displayCount, setDisplayCount] = useState(VISIBLE_COUNT);
-  const [rating, setRating] = useState(5);
+  const [rating, setRating] = useState<number>(() => {
+    if (typeof window === "undefined") {
+      return 5;
+    }
+
+    const savedRating = window.localStorage.getItem(`${USER_RATING_KEY}:${product.id}`);
+    return savedRating ? clampRating(Number(savedRating)) : 5;
+  });
   const [previewRating, setPreviewRating] = useState<number | null>(null);
-  const [reviewerName, setReviewerName] = useState("");
+  const [reviewerName, setReviewerName] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    return window.localStorage.getItem(USER_NAME_KEY) ?? "";
+  });
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -188,31 +208,12 @@ export default function ReviewSystem({
   useEffect(() => {
     const storedReviews = getStoredReviews(product.id);
 
-    if (storedReviews.length > 0) {
-      setReviews(storedReviews);
-      setDisplayCount(VISIBLE_COUNT);
-      return;
+    if (storedReviews.length === 0) {
+      const demoReviews = makeSeedReviews(product);
+      setReviews(demoReviews);
+      saveStoredReviews(product.id, demoReviews);
     }
-
-    const demoReviews = makeSeedReviews(product);
-    setReviews(demoReviews);
-    saveStoredReviews(product.id, demoReviews);
   }, [product]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const savedRating = window.localStorage.getItem(`${USER_RATING_KEY}:${product.id}`);
-    const savedName = window.localStorage.getItem(USER_NAME_KEY);
-
-    if (savedRating) {
-      setRating(clampRating(Number(savedRating)));
-    }
-
-    if (savedName) {
-      setReviewerName(savedName);
-    }
-  }, [product.id]);
 
   useEffect(() => {
     if (!status) return;

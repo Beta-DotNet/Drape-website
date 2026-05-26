@@ -27,7 +27,11 @@ export function ProductModalProvider({ children }: { children: React.ReactNode }
     <ProductModalContext.Provider value={{ activeProduct, openProductModal, closeProductModal }}>
       {children}
       {activeProduct && (
-        <ProductModal product={activeProduct} onClose={closeProductModal} />
+        <ProductModal
+          key={activeProduct.id}
+          product={activeProduct}
+          onClose={closeProductModal}
+        />
       )}
     </ProductModalContext.Provider>
   );

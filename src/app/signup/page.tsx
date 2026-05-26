@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getDisplayUsernameFromUser, setStoredAuthSession } from "@/lib/auth-session";
 import { supabase } from "@/lib/supabase";
 import { syncUserProfile } from "@/lib/profile-sync";
 
@@ -106,6 +107,11 @@ export default function SignupPage() {
         if (profileError) {
           throw profileError;
         }
+
+        setStoredAuthSession({
+          username: getDisplayUsernameFromUser(data.session.user),
+          email: data.session.user.email ?? undefined,
+        });
       }
 
       if (data.session) {

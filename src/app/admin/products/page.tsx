@@ -183,6 +183,8 @@ function EmptyForm(): ProductFormState {
 
 function AdminProductsContent() {
   const [loading, setLoading] = useState(true);
+  const didSeedLocalRef = useRef(false);
+
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -278,12 +280,29 @@ function AdminProductsContent() {
   };
 
   useEffect(() => {
-    // Avoid calling setState synchronously within effect body by starting async work in a microtask
+    // Show local fallback immediately to avoid empty/stuck UI.
+    const localProducts = readLocalProducts();
+    if (!didSeedLocalRef.current) {
+      didSeedLocalRef.current = true;
+      setProducts(localProducts);
+      setLoading(false);
+    }
+
+    // Then attempt Supabase in the background.
     const run = async () => {
-      await loadProducts();
+      setError(null);
+      setNotice(null);
+      setLoading(true);
+      try {
+        // Ensure loadProducts starts from the known local state.
+        await loadProducts();
+      } finally {
+        setLoading(false);
+      }
     };
     void run();
   }, []);
+
 
 
 

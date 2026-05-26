@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getDisplayUsernameFromUser, setStoredAuthSession } from "@/lib/auth-session";
 import { supabase } from "@/lib/supabase";
 import { syncUserProfile } from "@/lib/profile-sync";
 
@@ -66,6 +67,11 @@ export default function AuthCallbackPage() {
         if (profileError) {
           throw profileError;
         }
+
+        setStoredAuthSession({
+          username: getDisplayUsernameFromUser(data.session.user),
+          email: data.session.user.email ?? undefined,
+        });
 
         if (isMounted) {
           setStatus("Email confirmed. Redirecting to your profile…");

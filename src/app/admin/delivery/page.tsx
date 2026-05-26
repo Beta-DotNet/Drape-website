@@ -1,24 +1,59 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 
+interface ShippingAddress {
+  email: string;
+  phone: string;
+  address: string;
+}
+
 interface DeliveryOrder {
-  id: string; // Order UUID
+  id: string;
   status: string;
   total_amount: number;
-  shipping_address: {
-    email: string;
-    phone: string;
-    address: string;
-  };
+  shipping_address: ShippingAddress;
   created_at: string;
+}
+
+function normalizeShippingAddress(value: string | Record<string, unknown> | null | undefined): ShippingAddress {
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as Partial<ShippingAddress>;
+      return {
+        email: parsed.email ?? "customer@example.com",
+        phone: parsed.phone ?? "0771234567",
+        address: parsed.address ?? "Harare, Zimbabwe",
+      };
+    } catch {
+      return {
+        email: "customer@example.com",
+        phone: "0771234567",
+        address: "Harare, Zimbabwe",
+      };
+    }
+  }
+
+  if (value && typeof value === "object") {
+    const parsed = value as Partial<ShippingAddress>;
+    return {
+      email: parsed.email ?? "customer@example.com",
+      phone: parsed.phone ?? "0771234567",
+      address: parsed.address ?? "Harare, Zimbabwe",
+    };
+  }
+
+  return {
+    email: "customer@example.com",
+    phone: "0771234567",
+    address: "Harare, Zimbabwe",
+  };
 }
 
 function RiderDashboardContent() {
   const [orders, setOrders] = useState<DeliveryOrder[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [deliveryStatus, setDeliveryStatus] = useState("Preparing");
   const [gpsActive, setGpsActive] = useState(false);
   const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
@@ -26,6 +61,11 @@ function RiderDashboardContent() {
 
   const watchIdRef = useRef<number | null>(null);
   const broadcastChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const selectedOrder = useMemo(
+    () => orders.find((order) => order.id === selectedOrderId) ?? null,
+    [orders, selectedOrderId]
+  );
+  const deliveryStatus = selectedOrder?.status ?? "Preparing";
 
   // Fetch orders from Supabase (fallback to mock orders for rich offline demo)
   useEffect(() => {
@@ -38,18 +78,17 @@ function RiderDashboardContent() {
 
         if (error) throw error;
         if (data && data.length > 0) {
-          const mapped: DeliveryOrder[] = data.map((o: { id: string; status: string; total_amount: number; shipping_address: string | Record<string, unknown>; created_at: string }) => ({
-            id: o.id,
-            status: o.status,
-            total_amount: o.total_amount,
-            shipping_address: typeof o.shipping_address === "string" 
-              ? JSON.parse(o.shipping_address) 
-              : (o.shipping_address as any) || { email: "customer@example.com", phone: "0771234567", address: "Harare, Zimbabwe" },
-            created_at: o.created_at
+          const mapped: DeliveryOrder[] = data.map((o) => ({
+            id: String(o.id),
+            status: String(o.status ?? "Preparing"),
+            total_amount: Number(o.total_amount ?? 0),
+            shipping_address: normalizeShippingAddress(
+              (o.shipping_address as string | Record<string, unknown> | null | undefined) ?? null
+            ),
+            created_at: String(o.created_at),
           }));
           setOrders(mapped);
-          setSelectedOrderId(mapped[0].id);
-          setDeliveryStatus(mapped[0].status);
+          setSelectedOrderId(mapped[0]?.id ?? null);
         } else {
           loadMockOrders();
         }
@@ -85,25 +124,11 @@ function RiderDashboardContent() {
         },
       ];
       setOrders(mock);
-      setSelectedOrderId(mock[0].id);
-      setDeliveryStatus(mock[0].status);
+      setSelectedOrderId(mock[0]?.id ?? null);
     };
 
     fetchActiveDeliveries();
   }, []);
-
-  // Update status when active order selection changes
-  useEffect(() => {
-    if (selectedOrderId) {
-      const active = orders.find((o) => o.id === selectedOrderId);
-      if (active && deliveryStatus !== active.status) {
-        // setState-in-effect warning: schedule to next tick to avoid cascading renders
-        setDeliveryStatus(active.status);
-
-      }
-    }
-
-  }, [selectedOrderId, orders, deliveryStatus]);
 
   // Clean up GPS watcher on unmount
   useEffect(() => {
@@ -129,9 +154,8 @@ function RiderDashboardContent() {
 
   // Toggle order status
   const handleUpdateStatus = async (newStatus: string) => {
-    setDeliveryStatus(newStatus);
     setOrders((prev) =>
-      prev.map((o) => (o.id === selectedOrderId ? { ...o, status: newStatus } : o))
+      prev.map((order) => (order.id === selectedOrderId ? { ...order, status: newStatus } : order))
     );
 
     // Server-side update + trusted broadcast

@@ -106,6 +106,17 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
   overflow:hidden;
   justify-self:end;
 }
+.header-search.header-search--center{
+  width:100%;
+  max-width:100%;
+}
+.header-search.header-search--center.is-expanded{
+  width:100%;
+  max-width:100%;
+  padding:8px 12px;
+  background:rgba(255,255,255,0.18);
+  border-color:rgba(255,255,255,0.34);
+}
 .header-search form{
   display:flex;
   align-items:center;
@@ -166,25 +177,27 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 }
 .vs-trigger-btn:hover{background:rgba(249,211,67,0.28)}
 
-.header-nav{
-  display:flex;
-  align-items:center;
-  gap:var(--s-xl);
-  justify-content:center;
-}
-.header-nav a{
-  color:#fff;font-family:var(--font-h);font-size:17px;font-weight:600;
-  white-space:nowrap;position:relative;transition:opacity 150ms ease;
-}
-.header-nav a::after{
-  content:'';position:absolute;bottom:-4px;left:0;
-  width:0;height:2px;background:var(--gold);border-radius:2px;
-  transition:width 280ms var(--ease);
-}
-.header-nav a:hover::after,.header-nav a.active::after{width:100%}
-.header-nav a.admin-link{color:var(--gold);opacity:0.9}
-
 .header-actions{display:flex;align-items:center;gap:var(--s-md);flex-shrink:0;justify-self:end}
+.header-shop-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 16px;
+  border-radius:999px;
+  background:rgba(249,211,67,0.14);
+  border:1px solid rgba(249,211,67,0.28);
+  color:#fff;
+  font-family:var(--font-h);
+  font-size:13px;
+  font-weight:700;
+  text-decoration:none;
+  transition:background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+.header-shop-btn:hover{
+  background:rgba(249,211,67,0.24);
+  border-color:rgba(249,211,67,0.45);
+  transform:translateY(-1px);
+}
 .icon-action{
   position:relative;display:flex;align-items:center;gap:5px;
   color:#fff;font-size:13px;font-weight:500;cursor:pointer;
@@ -208,6 +221,101 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
   border:none;cursor:pointer;
 }
 .btn-login:hover{background:var(--gold);color:var(--navy-dark);transform:translateY(-1px)}
+.header-auth-wrapper{
+  position:relative;
+}
+.header-auth-menu{
+  position:absolute;
+  top:calc(100% + 12px);
+  right:0;
+  min-width:260px;
+  padding:16px;
+  border-radius:18px;
+  background:rgba(10, 16, 28, 0.98);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 28px 64px rgba(4, 10, 20, 0.45);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  z-index:30;
+}
+.header-auth-menu__summary{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header-auth-avatar{
+  width:42px;
+  height:42px;
+  border-radius:999px;
+  background:linear-gradient(135deg, var(--gold), #ffd66a);
+  color:var(--navy-dark);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:16px;
+  flex-shrink:0;
+}
+.header-auth-name{
+  margin:0;
+  color:#fff;
+  font-weight:700;
+}
+.header-auth-email{
+  margin:4px 0 0;
+  color:rgba(255,255,255,0.75);
+  font-size:13px;
+  word-break:break-word;
+}
+.header-auth-menu__list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.header-auth-link,
+.header-auth-logout{
+  width:100%;
+  border:0;
+  border-radius:16px;
+  font-family:var(--font-h);
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  text-decoration:none;
+  transition:background 180ms ease, color 180ms ease, transform 150ms ease;
+}
+.header-auth-link{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  padding:12px 14px;
+  text-align:left;
+}
+.header-auth-link:hover{background:rgba(255,255,255,0.12)}
+.header-auth-link__label{
+  font-weight:700;
+}
+.header-auth-link__description{
+  font-size:12px;
+  color:rgba(255,255,255,0.74);
+  line-height:1.4;
+  font-weight:500;
+}
+.header-auth-menu__footer{
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+.header-auth-logout{
+  background:var(--gold);
+  color:var(--navy-dark);
+  padding:11px 14px;
+  text-align:center;
+}
+.header-auth-logout:hover{transform:translateY(-1px)}
 
 /* ============================================================
    5. APP WRAPPER & VIEWS

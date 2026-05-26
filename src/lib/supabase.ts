@@ -8,13 +8,18 @@ function makeErrorResult(message: string) {
 }
 
 type FallbackQueryBuilder = {
-  select: () => FallbackQueryBuilder;
-  order: () => FallbackQueryBuilder;
-  eq: () => FallbackQueryBuilder;
+  select: (columns?: string) => FallbackQueryBuilder;
+  order: (column: string, options?: { ascending?: boolean }) => FallbackQueryBuilder;
+  eq: (column: string, value: unknown) => FallbackQueryBuilder;
+  in: (column: string, values: unknown[]) => FallbackQueryBuilder;
+  or: (query: string) => FallbackQueryBuilder;
+  limit: (count: number) => FallbackQueryBuilder;
+  maybeSingle: () => Promise<{ data: unknown; error: { message: string } | null }>;
   single: () => Promise<{ data: unknown; error: { message: string } | null }>;
-  insert: () => Promise<{ data: unknown; error: { message: string } | null }>;
-  update: () => Promise<{ data: unknown; error: { message: string } | null }>;
-  delete: () => Promise<{ data: unknown; error: { message: string } | null }>;
+  insert: (payload: unknown) => Promise<{ data: unknown; error: { message: string } | null }>;
+  update: (payload: unknown) => Promise<{ data: unknown; error: { message: string } | null }>;
+  upsert: (payload: unknown) => Promise<{ data: unknown; error: { message: string } | null }>;
+  delete: () => FallbackQueryBuilder;
 };
 
 function createFallbackQueryBuilder(): FallbackQueryBuilder {
@@ -22,10 +27,15 @@ function createFallbackQueryBuilder(): FallbackQueryBuilder {
     select: () => builder,
     order: () => builder,
     eq: () => builder,
+    in: () => builder,
+    or: () => builder,
+    limit: () => builder,
+    maybeSingle: () => makeErrorResult("Supabase is not configured. Configure a valid anon key to enable live data."),
     single: () => makeErrorResult("Supabase is not configured. Configure a valid anon key to enable live data."),
     insert: () => makeErrorResult("Supabase is not configured. Configure a valid anon key to enable live data."),
     update: () => makeErrorResult("Supabase is not configured. Configure a valid anon key to enable live data."),
-    delete: () => makeErrorResult("Supabase is not configured. Configure a valid anon key to enable live data."),
+    upsert: () => makeErrorResult("Supabase is not configured. Configure a valid anon key to enable live data."),
+    delete: () => builder,
   };
 
   return builder;
