@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -18,9 +20,13 @@ function parseBody(body: any) {
 
 export async function POST(req: Request) {
   try {
-    if (!supabaseUrl || !serviceRoleKey) {
-      return jsonError("Server misconfigured: missing Supabase env vars.", 500);
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      return jsonError(
+        "Server misconfigured: missing Supabase env vars (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY).",
+        500
+      );
     }
+
 
     // NOTE: This endpoint exists to centralize server-side broadcasting.
     // It expects a valid user token + admin role.
@@ -29,9 +35,10 @@ export async function POST(req: Request) {
     if (!token) return jsonError("Missing auth token", 401);
 
     // Verify user role
-    const supabaseUser = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "", {
+    const supabaseUser = createClient(supabaseUrl, anonKey || "", {
       auth: { persistSession: false },
     });
+
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
     const { data: authData, error: userErr } = await supabaseUser.auth.getUser(token);
@@ -61,7 +68,10 @@ export async function POST(req: Request) {
         payload,
       });
 
-    if (error) return jsonError("Failed to enqueue broadcast", 500);
+    if (error) {
+      return jsonError(`Failed to enqueue broadcast: ${error.message}`, 500);
+    }
+
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return jsonError(e?.message || "Unexpected error", 500);

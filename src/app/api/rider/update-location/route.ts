@@ -67,7 +67,10 @@ export async function POST(req: Request) {
       .from("deliveries")
       .upsert(payload, { onConflict: "order_id" });
 
-    if (upsertErr) return jsonError("Failed to persist location", 500);
+    if (upsertErr) {
+      return jsonError(`Failed to persist location: ${upsertErr.message}`, 500);
+    }
+
 
     // Enqueue realtime broadcast (server-side)
     const { error: enqueueErr } = await supabaseAdmin
@@ -78,7 +81,10 @@ export async function POST(req: Request) {
         payload: { lat, lng, eta: eta ?? null },
       });
 
-    if (enqueueErr) return jsonError("Failed to enqueue location broadcast", 500);
+    if (enqueueErr) {
+      return jsonError(`Failed to enqueue location broadcast: ${enqueueErr.message}`, 500);
+    }
+
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {

@@ -58,7 +58,10 @@ export async function POST(req: Request) {
       .update({ status })
       .eq("id", orderId);
 
-    if (orderErr) return jsonError("Failed to update order status", 500);
+    if (orderErr) {
+      return jsonError(`Failed to update order status: ${orderErr.message}`, 500);
+    }
+
 
     const { error: delErr } = await supabaseAdmin
       .from("deliveries")
@@ -68,7 +71,10 @@ export async function POST(req: Request) {
         last_updated: new Date().toISOString(),
       }, { onConflict: "order_id" });
 
-    if (delErr) return jsonError("Failed to update delivery status", 500);
+    if (delErr) {
+      return jsonError(`Failed to update delivery status: ${delErr.message}`, 500);
+    }
+
 
     // Enqueue realtime broadcast (server-side)
     const { error: enqueueErr } = await supabaseAdmin
@@ -79,7 +85,10 @@ export async function POST(req: Request) {
         payload: { status },
       });
 
-    if (enqueueErr) return jsonError("Failed to enqueue status broadcast", 500);
+    if (enqueueErr) {
+      return jsonError(`Failed to enqueue status broadcast: ${enqueueErr.message}`, 500);
+    }
+
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
