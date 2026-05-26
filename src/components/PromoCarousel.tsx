@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -17,6 +16,31 @@ interface PromotionRecord {
   end_date?: string | null;
   priority?: number | null;
 }
+
+const fallbackPromotions: PromotionRecord[] = [
+  {
+    id: "fallback-summer-sale",
+    title: "Summer Sale",
+    description:
+      "Refresh your wardrobe with elevated essentials, tailored pieces, and limited-time savings for every occasion.",
+    image_url:
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1600&q=80",
+    link_url: "/shop",
+    cta_text: "Shop now",
+    priority: 1,
+  },
+  {
+    id: "fallback-new-arrivals",
+    title: "New arrivals are here",
+    description:
+      "Discover bold silhouettes, premium fabrics, and the latest looks curated for your next fashion moment.",
+    image_url:
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1600&q=80",
+    link_url: "/shop",
+    cta_text: "Explore drops",
+    priority: 2,
+  },
+];
 
 function isWithinWindow(startDate: string | null | undefined, endDate: string | null | undefined) {
   const now = new Date();
@@ -68,13 +92,13 @@ export default function PromoCarousel() {
           .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
 
         if (isMounted) {
-          setPromotions(activePromotions);
+          setPromotions(activePromotions.length ? activePromotions : fallbackPromotions);
           setCurrentIndex(0);
         }
       } catch (error) {
         console.warn("Could not load promotions from Supabase.", error);
         if (isMounted) {
-          setPromotions([]);
+          setPromotions(fallbackPromotions);
         }
       } finally {
         if (isMounted) {
@@ -102,13 +126,8 @@ export default function PromoCarousel() {
     return () => window.clearInterval(intervalId);
   }, [isPaused, promotions.length]);
 
-  useEffect(() => {
-    if (currentIndex >= promotions.length) {
-      setCurrentIndex(0);
-    }
-  }, [currentIndex, promotions.length]);
-
-  const activePromotion = useMemo(() => promotions[currentIndex] ?? null, [currentIndex, promotions]);
+  const safeCurrentIndex = promotions.length === 0 ? 0 : currentIndex % promotions.length;
+  const activePromotion = useMemo(() => promotions[safeCurrentIndex] ?? null, [promotions, safeCurrentIndex]);
 
   const nextSlide = () => {
     setCurrentIndex((previous) => (previous + 1) % Math.max(promotions.length, 1));
@@ -152,25 +171,40 @@ export default function PromoCarousel() {
         onTouchEnd={() => setIsPaused(false)}
       >
         {activePromotion && (
-          <div className="relative min-h-[300px] sm:min-h-[360px]">
+          <div
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              height: "clamp(320px, 38vw, 440px)",
+            }}
+          >
             {activePromotion.image_url ? (
-              <Image
+              <img
                 src={activePromotion.image_url}
                 alt={activePromotion.title}
-                fill
-                priority={currentIndex === 0}
-                unoptimized
-                sizes="(max-width: 768px) 100vw, 100vw"
-                className="object-cover"
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,_#f4e8da_0%,_#e4c9aa_48%,_#cda980_100%)]" />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "linear-gradient(135deg, #f4e8da 0%, #e4c9aa 48%, #cda980 100%)",
+                }}
+              />
             )}
 
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,23,42,0.88)_0%,rgba(15,23,42,0.55)_45%,rgba(15,23,42,0.2)_100%)]" />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(90deg, rgba(15,23,42,0.88) 0%, rgba(15,23,42,0.55) 45%, rgba(15,23,42,0.2) 100%)",
+              }}
+            />
 
             <div
-              className="absolute inset-0 cursor-pointer"
+              className="cursor-pointer"
               role="button"
               tabIndex={0}
               onClick={() => handleSlideClick(activePromotion.link_url)}
@@ -180,14 +214,32 @@ export default function PromoCarousel() {
                   handleSlideClick(activePromotion.link_url);
                 }
               }}
+              style={{ position: "absolute", inset: 0 }}
             />
 
-            <div className="relative z-10 flex h-full min-h-[300px] flex-col justify-end p-5 sm:min-h-[360px] sm:p-8 lg:max-w-[55%]">
-              <div className="max-w-xl rounded-[24px] border border-white/15 bg-[rgba(15,23,42,0.42)] p-4 backdrop-blur-sm sm:p-6">
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-[#f5ddb3] sm:text-[12px]">
-                  Active promotion
+            <div
+              style={{
+                position: "absolute",
+                insetInline: "1rem",
+                bottom: "1rem",
+                zIndex: 10,
+                maxWidth: "55%",
+              }}
+            >
+              <div className="rounded-[24px] border border-white/15 bg-[rgba(15,23,42,0.55)] p-4 backdrop-blur-sm sm:p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="inline-flex items-center rounded-full border border-white/20 bg-[rgba(15,23,42,0.55)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f6e7c9] backdrop-blur-sm sm:text-[12px]">
+                    Active promotion
+                  </div>
+                  <div className="rounded-full border border-white/20 bg-[rgba(15,23,42,0.55)] px-3 py-1 text-sm font-semibold text-white backdrop-blur-sm">
+                    {currentIndex + 1} / {promotions.length}
+                  </div>
+                </div>
+
+                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.22em] text-[#f5ddb3] sm:text-[12px]">
+                  Curated for your next drop
                 </p>
-                <h2 className="text-2xl font-bold text-white sm:text-3xl lg:text-[2.4rem]">
+                <h2 className="mt-3 text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-[2.4rem]">
                   {activePromotion.title}
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-[#f6f0e3] sm:text-base">
@@ -201,13 +253,13 @@ export default function PromoCarousel() {
                       event.stopPropagation();
                       handleSlideClick(activePromotion.link_url);
                     }}
-                    className="inline-flex items-center justify-center rounded-full bg-[#f5c96b] px-5 py-3 text-sm font-bold text-[#111827] transition hover:bg-[#edd48d]"
+                    className="inline-flex w-full items-center justify-center rounded-full bg-[#f5c96b] px-5 py-3 text-sm font-bold text-[#111827] shadow-[0_12px_35px_rgba(245,201,107,0.28)] transition hover:-translate-y-0.5 hover:bg-[#edd48d] sm:w-auto"
                   >
                     {activePromotion.cta_text || "Shop now"}
                   </button>
                   {activePromotion.link_url ? (
                     <span className="text-sm font-medium text-white/90">
-                      Explore the offer →
+                      Tap the button to explore the offer.
                     </span>
                   ) : null}
                 </div>

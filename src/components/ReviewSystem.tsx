@@ -206,16 +206,6 @@ export default function ReviewSystem({
   const hasMore = reviews.length > displayCount;
 
   useEffect(() => {
-    const storedReviews = getStoredReviews(product.id);
-
-    if (storedReviews.length === 0) {
-      const demoReviews = makeSeedReviews(product);
-      setReviews(demoReviews);
-      saveStoredReviews(product.id, demoReviews);
-    }
-  }, [product]);
-
-  useEffect(() => {
     if (!status) return;
 
     const timeout = window.setTimeout(() => setStatus(null), 3500);

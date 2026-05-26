@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -76,6 +77,6 @@ const hasValidSupabaseConfig =
   !supabaseKey.startsWith("sb_secret_");
 
 export const supabase = (hasValidSupabaseConfig
-  ? createClient(supabaseUrl, supabaseKey)
-  : createFallbackClient()) as unknown as ReturnType<typeof createClient>;
+  ? createClient<Database>(supabaseUrl, supabaseKey)
+  : createFallbackClient()) as SupabaseClient<Database>;
 

@@ -230,7 +230,6 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
     localStorage.setItem("drape_size_profile", JSON.stringify(mockProfile));
     setSizeProfile(mockProfile);
-    determineRecommendedSize(mockProfile, product);
     alert("AI scan successful! Your size recommendations are now active across all products.");
   };
 

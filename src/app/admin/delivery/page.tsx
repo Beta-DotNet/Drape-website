@@ -78,14 +78,15 @@ function RiderDashboardContent() {
 
         if (error) throw error;
         if (data && data.length > 0) {
-          const mapped: DeliveryOrder[] = data.map((o) => ({
-            id: String(o.id),
+          const records = data as Array<Record<string, unknown>>;
+          const mapped: DeliveryOrder[] = records.map((o) => ({
+            id: String(o.id ?? ""),
             status: String(o.status ?? "Preparing"),
             total_amount: Number(o.total_amount ?? 0),
             shipping_address: normalizeShippingAddress(
               (o.shipping_address as string | Record<string, unknown> | null | undefined) ?? null
             ),
-            created_at: String(o.created_at),
+            created_at: String(o.created_at ?? new Date().toISOString()),
           }));
           setOrders(mapped);
           setSelectedOrderId(mapped[0]?.id ?? null);
