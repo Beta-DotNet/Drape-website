@@ -17,31 +17,6 @@ interface PromotionRecord {
   priority?: number | null;
 }
 
-const fallbackPromotions: PromotionRecord[] = [
-  {
-    id: "fallback-summer-sale",
-    title: "Summer Sale",
-    description:
-      "Refresh your wardrobe with elevated essentials, tailored pieces, and limited-time savings for every occasion.",
-    image_url:
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1600&q=80",
-    link_url: "/shop",
-    cta_text: "Shop now",
-    priority: 1,
-  },
-  {
-    id: "fallback-new-arrivals",
-    title: "New arrivals are here",
-    description:
-      "Discover bold silhouettes, premium fabrics, and the latest looks curated for your next fashion moment.",
-    image_url:
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1600&q=80",
-    link_url: "/shop",
-    cta_text: "Explore drops",
-    priority: 2,
-  },
-];
-
 function isWithinWindow(startDate: string | null | undefined, endDate: string | null | undefined) {
   const now = new Date();
 
@@ -146,13 +121,13 @@ export default function PromoCarousel() {
           .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
 
         if (isMounted) {
-          setPromotions(activePromotions.length ? activePromotions : fallbackPromotions);
+          setPromotions(activePromotions);
           setCurrentIndex(0);
         }
       } catch (error) {
         console.warn("Could not load promotions from Supabase.", error);
         if (isMounted) {
-          setPromotions(fallbackPromotions);
+          setPromotions([]);
         }
       } finally {
         if (isMounted) {

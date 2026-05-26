@@ -2,9 +2,65 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { DEFAULT_PRODUCTS } from "@/lib/data";
+import { DEFAULT_PRODUCTS, Product } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
+import { supabase } from "@/lib/supabase";
 import { translateShonaTerm } from "@/lib/search";
+
+function mapSupabaseProductRow(row: unknown): Product {
+  const product = row as Partial<{
+    id: number | string;
+    name: string;
+    brand: string;
+    category: string;
+    gender: string | null;
+    price: number | string;
+    original_price: number | string | null;
+    images: unknown;
+    colors: unknown;
+    sizes: unknown;
+    rating: number | null;
+    reviews: number | null;
+    fabric: string | null;
+    care: string | null;
+    description: string | null;
+    tags: unknown;
+    in_stock: boolean | null;
+  }>;
+
+  return {
+    id: typeof product.id === "number" ? product.id : Number(product.id ?? 0),
+    name: typeof product.name === "string" ? product.name : "",
+    brand: typeof product.brand === "string" ? product.brand : "",
+    category: typeof product.category === "string" ? product.category : "",
+    gender: typeof product.gender === "string" ? product.gender : "Unisex",
+    price: typeof product.price === "number" ? product.price : Number(product.price ?? 0),
+    originalPrice:
+      typeof product.original_price === "number"
+        ? product.original_price
+        : typeof product.original_price === "string"
+          ? Number(product.original_price)
+          : null,
+    images: Array.isArray(product.images)
+      ? product.images.filter((item): item is string => typeof item === "string")
+      : [],
+    colors: Array.isArray(product.colors)
+      ? product.colors.filter((item): item is string => typeof item === "string")
+      : [],
+    sizes: Array.isArray(product.sizes)
+      ? product.sizes.filter((item): item is string => typeof item === "string")
+      : [],
+    rating: typeof product.rating === "number" ? product.rating : 0,
+    reviews: typeof product.reviews === "number" ? product.reviews : 0,
+    fabric: typeof product.fabric === "string" ? product.fabric : "",
+    care: typeof product.care === "string" ? product.care : "",
+    description: typeof product.description === "string" ? product.description : "",
+    tags: Array.isArray(product.tags)
+      ? product.tags.filter((item): item is string => typeof item === "string")
+      : [],
+    inStock: typeof product.in_stock === "boolean" ? product.in_stock : Boolean(product.in_stock),
+  };
+}
 
 function ShopContent() {
   const router = useRouter();
@@ -15,12 +71,52 @@ function ShopContent() {
   const urlCategory = searchParams.get("category") || "all";
   const urlGender   = searchParams.get("gender") || "all";
 
+  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
   const [category, setCategory]     = useState(urlCategory);
   const [gender, setGender]         = useState(urlGender);
   const [maxPrice, setMaxPrice]     = useState(500);
   const [translatedQuery, setTranslatedQuery] = useState("");
   const [isShona, setIsShona]       = useState(false);
   const [shonaTerm, setShonaTerm]   = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProducts() {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (!Array.isArray(data)) {
+          setProducts(DEFAULT_PRODUCTS);
+          return;
+        }
+
+        const liveProducts = data.map(mapSupabaseProductRow);
+        setProducts(liveProducts);
+      } catch {
+        if (isMounted) {
+          setProducts(DEFAULT_PRODUCTS);
+        }
+      }
+    }
+
+    void loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Re-sync sidebar filters when URL changes (e.g. clicking nav links)
   useEffect(() => {
@@ -52,7 +148,7 @@ function ShopContent() {
   }, [urlQ]);
 
   // Filtering logic — matches original OR translated query
-  const filteredProducts = DEFAULT_PRODUCTS.filter((p) => {
+  const filteredProducts = products.filter((p) => {
     // Sidebar filters
     if (category !== "all" && p.category.toLowerCase() !== category.toLowerCase()) return false;
     if (gender !== "all" && p.gender !== gender && p.gender !== "Unisex") return false;

@@ -569,9 +569,14 @@ function AdminProductsContent() {
           </div>
         </div>
 
-        <button type="button" onClick={openCreate} className="admin-cta-button">
-          + Add product
-        </button>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <button type="button" onClick={openCreate} className="admin-cta-button">
+            + Add product
+          </button>
+          <a href="/admin/home" className="admin-secondary-button" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+            Manage homepage content
+          </a>
+        </div>
       </div>
 
       <div className="admin-products-search-panel">

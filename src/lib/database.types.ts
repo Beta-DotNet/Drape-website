@@ -147,6 +147,45 @@ export type Database = {
         }>;
         Relationships: [];
       };
+      home_deals: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          image_url?: string | null;
+          link_url?: string | null;
+          badge_text?: string | null;
+          is_active: boolean;
+          start_date?: string | null;
+          end_date?: string | null;
+          priority: number;
+        };
+        Insert: Partial<{
+          id: string;
+          title: string;
+          description: string;
+          image_url?: string | null;
+          link_url?: string | null;
+          badge_text?: string | null;
+          is_active: boolean;
+          start_date?: string | null;
+          end_date?: string | null;
+          priority: number;
+        }>;
+        Update: Partial<{
+          id: string;
+          title: string;
+          description: string;
+          image_url?: string | null;
+          link_url?: string | null;
+          badge_text?: string | null;
+          is_active: boolean;
+          start_date?: string | null;
+          end_date?: string | null;
+          priority: number;
+        }>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

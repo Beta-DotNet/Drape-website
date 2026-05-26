@@ -99,6 +99,37 @@ INSERT INTO public.shona_dictionary (shona_term, english_translation) VALUES
 ('heti', 'hat');
 
 -- ==========================================
+-- 7. HOMEPAGE PROMOTIONS
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.promotions (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  title text NOT NULL,
+  description text NOT NULL,
+  image_url text,
+  link_url text,
+  cta_text text,
+  is_active boolean DEFAULT true,
+  start_date timestamptz,
+  end_date timestamptz,
+  priority integer DEFAULT 0,
+  created_at timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.home_deals (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  title text NOT NULL,
+  description text NOT NULL,
+  image_url text,
+  link_url text,
+  badge_text text,
+  is_active boolean DEFAULT true,
+  start_date timestamptz,
+  end_date timestamptz,
+  priority integer DEFAULT 0,
+  created_at timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ==========================================
 -- ROW LEVEL SECURITY (RLS)
 -- ==========================================
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -107,6 +138,8 @@ ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.shona_dictionary ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promotions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.home_deals ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: Users can read/insert/update their own profile
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
@@ -144,6 +177,18 @@ CREATE POLICY "Admins can view all deliveries" ON public.deliveries FOR ALL USIN
 
 -- Dictionary: Anyone can read
 CREATE POLICY "Anyone can view dictionary" ON public.shona_dictionary FOR SELECT USING (true);
+
+-- Homepage promotions: Select active items publicly, admin can manage all
+CREATE POLICY "Anyone can view active promotions" ON public.promotions FOR SELECT USING (is_active = true);
+CREATE POLICY "Admins can manage promotions" ON public.promotions FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- Homepage deals: Select active items publicly, admin can manage all
+CREATE POLICY "Anyone can view active deals" ON public.home_deals FOR SELECT USING (is_active = true);
+CREATE POLICY "Admins can manage deals" ON public.home_deals FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+);
 
 -- ==========================================
 -- 7. MESSAGES (Buyer-Seller Chat)
