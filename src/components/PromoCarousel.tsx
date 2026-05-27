@@ -121,6 +121,9 @@ export default function PromoCarousel() {
           .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
 
         if (isMounted) {
+          console.log("[PromoCarousel] activePromotions loaded:",
+            activePromotions.map((p) => ({ id: p.id, title: p.title, image_url: p.image_url, link_url: p.link_url }))
+          );
           setPromotions(activePromotions);
           setCurrentIndex(0);
         }
@@ -198,7 +201,9 @@ export default function PromoCarousel() {
   };
 
   const previousSlide = () => {
-    setCurrentIndex((previous) => (previous - 1 + Math.max(promotions.length, 1)) % Math.max(promotions.length, 1));
+    setCurrentIndex(
+      (previous) => (previous - 1 + Math.max(promotions.length, 1)) % Math.max(promotions.length, 1)
+    );
   };
 
   const handleSlideClick = (linkUrl?: string | null) => {
@@ -239,15 +244,16 @@ export default function PromoCarousel() {
             style={{
               position: "relative",
               overflow: "hidden",
-              height: "clamp(320px, 38vw, 440px)",
+              height: "clamp(320px, 900vh, 674px)",
             }}
           >
             {activePromotion.image_url ? (
               <img
                 src={activePromotion.image_url}
                 alt={activePromotion.title}
-                crossOrigin="anonymous"
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                loading="eager"
+                fetchPriority="high"
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
               />
             ) : (
               <div

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, context: { params: { id: string } | Promise<{ id: string }> }) {
+  const params = (await Promise.resolve(context.params)) as { id: string };
   const body = await request.json();
   const { title, description, image_url, link_url, cta_text, is_active, start_date, end_date, priority } = body;
+
 
   if (!title?.trim() || !description?.trim()) {
     return NextResponse.json({ error: "Title and description are required." }, { status: 400 });
@@ -33,11 +35,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return NextResponse.json({ data });
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, context: { params: { id: string } | Promise<{ id: string }> }) {
+  const params = (await Promise.resolve(context.params)) as { id: string };
   const { data, error } = await supabaseServer
     .from("promotions")
     .delete()
     .eq("id", params.id);
+
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

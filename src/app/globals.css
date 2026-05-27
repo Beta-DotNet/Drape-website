@@ -849,7 +849,7 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-h);line-height:1.1}
 .deal-card{
   flex:0 0 calc(25% - 18px);min-width:256px;
   border-radius:var(--r-xl);overflow:hidden;position:relative;
-  min-height:330px;background:var(--navy);box-shadow:var(--sh-card);
+  aspect-ratio:3/3.5;background:var(--navy);box-shadow:var(--sh-card);
   cursor:pointer;transition:transform 300ms var(--ease),box-shadow 300ms ease;
 }
 .deal-card:hover{transform:translateY(-6px);box-shadow:var(--sh-lg)}

@@ -120,14 +120,27 @@ CREATE TABLE IF NOT EXISTS public.home_deals (
   title text NOT NULL,
   description text NOT NULL,
   image_url text,
-  link_url text,
-  badge_text text,
-  is_active boolean DEFAULT true,
-  start_date timestamptz,
-  end_date timestamptz,
+  cta_text text,
+  cta_link text,
   priority integer DEFAULT 0,
+  is_active boolean DEFAULT true,
   created_at timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Ensure backward compatibility if older columns exist
+ALTER TABLE public.home_deals
+  DROP COLUMN IF EXISTS link_url,
+  DROP COLUMN IF EXISTS badge_text,
+  DROP COLUMN IF EXISTS start_date,
+  DROP COLUMN IF EXISTS end_date;
+
+
+-- Required columns for task compliance
+-- promotions: id, title, description, image_url, link_url, cta_text, is_active, start_date, end_date, priority, created_at
+-- home_deals: id, title, description, image_url, cta_text, cta_link, priority, is_active, created_at
+
+
+
 
 -- ==========================================
 -- ROW LEVEL SECURITY (RLS)
@@ -189,6 +202,7 @@ CREATE POLICY "Anyone can view active deals" ON public.home_deals FOR SELECT USI
 CREATE POLICY "Admins can manage deals" ON public.home_deals FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
 );
+
 
 -- ==========================================
 -- 7. MESSAGES (Buyer-Seller Chat)
