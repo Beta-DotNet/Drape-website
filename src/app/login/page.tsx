@@ -12,7 +12,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/profile";
+  const redirectTo = searchParams.get("redirect") || "/";
 
   const [form, setForm] = useState({
     email: "",

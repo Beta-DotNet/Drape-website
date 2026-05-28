@@ -27,7 +27,7 @@ export default function AuthCallbackPage() {
 
   const nextPath = useMemo(() => {
     if (typeof window === "undefined") {
-      return "/profile";
+      return "/";
     }
 
     const params = new URLSearchParams(window.location.search);
@@ -37,7 +37,7 @@ export default function AuthCallbackPage() {
       return next;
     }
 
-    return "/profile";
+    return "/";
   }, []);
 
   useEffect(() => {
