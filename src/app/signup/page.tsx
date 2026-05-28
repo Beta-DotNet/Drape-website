@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getDisplayUsernameFromUser, setStoredAuthSession } from "@/lib/auth-session";
 import { supabase } from "@/lib/supabase";
 import { syncUserProfile } from "@/lib/profile-sync";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -138,39 +139,21 @@ export default function SignupPage() {
     }
   };
 
-  const handleProviderSignup = async (provider: "google" | "apple") => {
+  const handleProviderSignup = async (provider: "apple") => {
     setStatus(null);
+    setProviderLoading(provider);
 
-    if (provider === "apple") {
+    try {
       setStatus({
         tone: "info",
         message: "Apple sign-up is available once your provider is configured.",
       });
-      return;
-    }
-
-    setProviderLoading(provider);
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: "/profile",
-        },
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      setStatus({
-        tone: "error",
-        message: error?.message || "Social sign-up is currently unavailable. Please check your provider configuration.",
-      });
+    } finally {
       setProviderLoading(null);
     }
   };
 
-  const googleLabel = providerLoading === "google" ? "Redirecting…" : "Continue with Google";
-  const appleLabel = "Continue with Apple";
+  const appleLabel = providerLoading === "apple" ? "Redirecting…" : "Continue with Apple";
 
   return (
     <section className="view active auth-page-shell">
@@ -358,14 +341,7 @@ export default function SignupPage() {
           </div>
 
           <div className="auth-social-grid">
-            <button
-              type="button"
-              className="btn btn-outline btn-block"
-              onClick={() => handleProviderSignup("google")}
-              disabled={Boolean(providerLoading)}
-            >
-              {googleLabel}
-            </button>
+            <GoogleSignInButton />
             <button
               type="button"
               className="btn btn-outline btn-block"

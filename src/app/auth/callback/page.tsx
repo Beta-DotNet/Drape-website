@@ -2,9 +2,24 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { account } from "@/lib/appwrite";
 import { getDisplayUsernameFromUser, setStoredAuthSession } from "@/lib/auth-session";
 import { supabase } from "@/lib/supabase";
 import { syncUserProfile } from "@/lib/profile-sync";
+
+function getAppwriteDisplayName(user: { name?: string; email?: string | null } | null | undefined) {
+  const name = typeof user?.name === "string" && user.name.trim();
+  if (name) {
+    return name.split(/\s+/)[0];
+  }
+
+  const email = typeof user?.email === "string" ? user.email.trim() : "";
+  if (email) {
+    return email.split("@")[0] || "User";
+  }
+
+  return "User";
+}
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -45,6 +60,28 @@ export default function AuthCallbackPage() {
         }
         window.setTimeout(() => router.replace("/login"), 1800);
         return;
+      }
+
+      try {
+        const appwriteAccount = account;
+        if (appwriteAccount) {
+          const user = await appwriteAccount.get();
+          const username = getAppwriteDisplayName(user);
+
+          setStoredAuthSession({
+            username,
+            email: user.email ?? undefined,
+          });
+
+          if (isMounted) {
+            setStatus("Google sign-in complete. Redirecting to your profile…");
+          }
+
+          window.setTimeout(() => router.replace(nextPath), 800);
+          return;
+        }
+      } catch {
+        // No Appwrite session was found; fall back to Supabase email flow.
       }
 
       if (!code) {
