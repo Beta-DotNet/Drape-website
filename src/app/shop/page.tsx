@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { DEFAULT_PRODUCTS, Product } from "@/lib/data";
+import { Product } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/lib/supabase";
 import { translateShonaTerm } from "@/lib/search";
@@ -71,7 +71,7 @@ function ShopContent() {
   const urlCategory = searchParams.get("category") || "all";
   const urlGender   = searchParams.get("gender") || "all";
 
-  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory]     = useState(urlCategory);
   const [gender, setGender]         = useState(urlGender);
   const [maxPrice, setMaxPrice]     = useState(500);
@@ -98,7 +98,7 @@ function ShopContent() {
         }
 
         if (!Array.isArray(data)) {
-          setProducts(DEFAULT_PRODUCTS);
+          setProducts([]);
           return;
         }
 
@@ -106,7 +106,7 @@ function ShopContent() {
         setProducts(liveProducts);
       } catch {
         if (isMounted) {
-          setProducts(DEFAULT_PRODUCTS);
+          setProducts([]);
         }
       }
     }

@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Product, DEFAULT_PRODUCTS } from "./data";
+import { Product } from "./data";
 
 type SupabaseProductRow = {
   id: number;
@@ -201,21 +201,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
   }
 
   // Fallback to static catalog for offline/dev when Supabase isn't ready.
-  if (matchingProducts.length === 0) {
-    matchingProducts = DEFAULT_PRODUCTS
-      .filter((product) => {
-        const nameMatch = product.name.toLowerCase().includes(lowerQuery);
-        const brandMatch = product.brand.toLowerCase().includes(lowerQuery);
-        const categoryMatch = product.category.toLowerCase().includes(lowerQuery);
-        const tagMatch = product.tags.some((t) => t.toLowerCase().includes(lowerQuery));
-        const descMatch = product.description.toLowerCase().includes(lowerQuery);
-
-        return nameMatch || brandMatch || categoryMatch || tagMatch || descMatch;
-      })
-      .slice(0, 3);
-  } else {
-    matchingProducts = matchingProducts.slice(0, 3);
-  }
+  matchingProducts = matchingProducts.slice(0, 3);
 
   return {
     originalQuery: trimmed,

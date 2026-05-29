@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import CheckoutModal from "./CheckoutModal";
+import { CartSkeleton } from "./skeletons";
 
 type CartItem = {
   product_id: number;
@@ -29,6 +30,7 @@ function readCart(): CartItem[] {
 export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const total = useMemo(
     () => cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
@@ -40,7 +42,11 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
   useEffect(() => {
     if (!isOpen) return;
 
-    const sync = () => setCartItems(readCart());
+    const sync = () => {
+      setIsLoading(true);
+      setCartItems(readCart());
+      setIsLoading(false);
+    };
 
     sync();
     window.addEventListener("cart_updated", sync);
@@ -77,7 +83,9 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
         </div>
 
         <div className="cart-items-wrap">
-          {cartItems.length > 0 ? (
+          {isLoading ? (
+            <CartSkeleton />
+          ) : cartItems.length > 0 ? (
             cartItems.map((item) => (
               <div
                 key={item.product_id}

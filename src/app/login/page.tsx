@@ -230,14 +230,6 @@ function LoginContent() {
 
           <div className="auth-social-grid">
             <GoogleSignInButton />
-            <button
-              type="button"
-              className="btn btn-outline btn-block"
-              onClick={() => handleProviderLogin("apple")}
-              disabled={Boolean(providerLoading)}
-            >
-              {appleLabel}
-            </button>
           </div>
 
         </div>

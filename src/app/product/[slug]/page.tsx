@@ -2,12 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ReviewSystem from '@/components/ReviewSystem';
 import { showToast } from '@/lib/toast';
 import { supabase } from '@/lib/supabase';
-import { DEFAULT_PRODUCTS, Product } from '@/lib/data';
+import { Product } from '@/lib/data';
 import { getProductSlug } from '@/lib/product-slug';
 
 interface SizeProfile {
@@ -27,9 +27,7 @@ interface SizeProfile {
 }
 
 function determineRecommendedSize(profile: SizeProfile | null, product: Product) {
-  if (!profile) {
-    return '';
-  }
+  if (!profile) return '';
 
   const cat = product.category.toLowerCase();
 
@@ -38,23 +36,22 @@ function determineRecommendedSize(profile: SizeProfile | null, product: Product)
   }
 
   if (cat === 'bottoms') {
-    return profile.brandSizes?.[product.brand]?.Bottoms || profile.brandSizes?.Nike?.Bottoms || 'M';
+    return (
+      profile.brandSizes?.[product.brand]?.Bottoms ||
+      profile.brandSizes?.Nike?.Bottoms ||
+      'M'
+    );
   }
 
   return profile.brandSizes?.[product.brand]?.Tops || profile.brandSizes?.Nike?.Tops || 'L';
 }
 
 function loadStoredSizeProfile(): SizeProfile | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
+  if (typeof window === 'undefined') return null;
 
   try {
     const raw = window.localStorage.getItem('drape_size_profile');
-    if (!raw) {
-      return null;
-    }
-
+    if (!raw) return null;
     return JSON.parse(raw) as SizeProfile;
   } catch (error) {
     console.error('Could not load size profile:', error);
@@ -62,18 +59,28 @@ function loadStoredSizeProfile(): SizeProfile | null {
   }
 }
 
-function syncLocalCart(item: { product_id: number; name: string; brand: string; price: number; image: string; size: string; color: string; quantity: number; isAiMatched: boolean }) {
+function syncLocalCart(item: {
+  product_id: number;
+  name: string;
+  brand: string;
+  price: number;
+  image: string;
+  size: string;
+  color: string;
+  quantity: number;
+  isAiMatched: boolean;
+}) {
   try {
     const stored = localStorage.getItem('drape_cart') || '[]';
     const cart = JSON.parse(stored);
 
-    if (!Array.isArray(cart)) {
-      return;
-    }
+    if (!Array.isArray(cart)) return;
 
     const existingIndex = cart.findIndex(
       (entry: { product_id: number; size: string; color: string }) =>
-        entry.product_id === item.product_id && entry.size === item.size && entry.color === item.color
+        entry.product_id === item.product_id &&
+        entry.size === item.size &&
+        entry.color === item.color
     );
 
     if (existingIndex > -1) {
@@ -98,17 +105,18 @@ function ProductDetailContent({ product }: { product: Product }) {
   const [isAdding, setIsAdding] = useState(false);
   const recommendedSize = determineRecommendedSize(sizeProfile, product);
 
+  useEffect(() => {
+    setSelectedImage(product.images[0]);
+    setSelectedSize(product.sizes[0] || '');
+    setSelectedColor(product.colors[0] || '');
+  }, [product.id]);
+
   const handleAddToBag = async () => {
-    if (!product) {
-      return;
-    }
-
-    const chosenSize = selectedSize || product.sizes[0] || 'L';
-    const chosenColor = selectedColor || product.colors[0] || 'Default';
-
     setIsAdding(true);
-
     try {
+      const chosenSize = selectedSize || product.sizes[0] || 'L';
+      const chosenColor = selectedColor || product.colors[0] || 'Default';
+
       const { data } = await supabase.auth.getUser();
 
       if (data.user?.id) {
@@ -130,9 +138,7 @@ function ProductDetailContent({ product }: { product: Product }) {
             { onConflict: 'user_id,product_id,size' }
           );
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
       }
 
       syncLocalCart({
@@ -156,9 +162,7 @@ function ProductDetailContent({ product }: { product: Product }) {
       });
     } catch (error) {
       console.error('Error saving to cart:', error);
-      showToast({
-        message: 'Could not save this item to your bag right now.',
-      });
+      showToast({ message: 'Could not save this item to your bag right now.' });
     } finally {
       setIsAdding(false);
     }
@@ -167,7 +171,10 @@ function ProductDetailContent({ product }: { product: Product }) {
   return (
     <main style={{ padding: '84px 24px 64px' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto' }}>
-        <Link href="/shop" style={{ color: 'var(--navy)', fontWeight: 700, display: 'inline-flex', marginBottom: 24 }}>
+        <Link
+          href="/shop"
+          style={{ color: 'var(--navy)', fontWeight: 700, display: 'inline-flex', marginBottom: 24 }}
+        >
           ← Back to shop
         </Link>
 
@@ -235,7 +242,9 @@ function ProductDetailContent({ product }: { product: Product }) {
               >
                 <div style={{ fontSize: 28 }}>✨</div>
                 <div>
-                  <div style={{ textTransform: 'uppercase', letterSpacing: 1.2, fontSize: 11, opacity: 0.8 }}>AI size recommendation</div>
+                  <div style={{ textTransform: 'uppercase', letterSpacing: 1.2, fontSize: 11, opacity: 0.8 }}>
+                    AI size recommendation
+                  </div>
                   <div style={{ fontFamily: 'var(--font-h, Arial)', fontSize: 24, fontWeight: 800 }}>Size {recommendedSize}</div>
                 </div>
               </div>
@@ -347,15 +356,7 @@ function ProductDetailContent({ product }: { product: Product }) {
               </button>
             </div>
 
-            <div
-              style={{
-                borderTop: '1px solid var(--border)',
-                paddingTop: 16,
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                gap: 12,
-              }}
-            >
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
               <div style={{ padding: 14, borderRadius: 16, background: 'var(--surface, #f8fafc)' }}>
                 <div style={{ fontSize: 12, textTransform: 'uppercase', opacity: 0.7 }}>Fabric</div>
                 <div style={{ marginTop: 6, fontWeight: 700 }}>{product.fabric}</div>
@@ -377,17 +378,84 @@ function ProductDetailContent({ product }: { product: Product }) {
   );
 }
 
+function mapSupabaseProductRow(row: any): Product {
+  return {
+    id: typeof row.id === 'number' ? row.id : Number(row.id ?? 0),
+    name: typeof row.name === 'string' ? row.name : '',
+    brand: typeof row.brand === 'string' ? row.brand : '',
+    category: typeof row.category === 'string' ? row.category : '',
+    gender: typeof row.gender === 'string' ? row.gender : 'Unisex',
+    price: Number(row.price ?? 0),
+    originalPrice: typeof row.original_price === 'number' ? row.original_price : row.original_price ? Number(row.original_price) : null,
+    images: Array.isArray(row.images) ? row.images.filter((x: any) => typeof x === 'string') : [],
+    colors: Array.isArray(row.colors) ? row.colors.filter((x: any) => typeof x === 'string') : [],
+    sizes: Array.isArray(row.sizes) ? row.sizes.filter((x: any) => typeof x === 'string') : [],
+    rating: typeof row.rating === 'number' ? row.rating : 0,
+    reviews: typeof row.reviews === 'number' ? row.reviews : 0,
+    fabric: typeof row.fabric === 'string' ? row.fabric : '',
+    care: typeof row.care === 'string' ? row.care : '',
+    description: typeof row.description === 'string' ? row.description : '',
+    tags: Array.isArray(row.tags) ? row.tags.filter((x: any) => typeof x === 'string') : [],
+    inStock: typeof row.in_stock === 'boolean' ? row.in_stock : true,
+  };
+}
+
 export default function ProductDetailPage() {
   const params = useParams<{ slug?: string | string[] }>();
   const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
-  const product = useMemo(() => {
-    if (!slug) {
-      return null;
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      if (!slug) {
+        setProduct(null);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*');
+
+        if (error) throw error;
+        if (!Array.isArray(data)) throw new Error('Invalid products response');
+
+        const mapped: Product[] = data.map(mapSupabaseProductRow);
+        const found = mapped.find((p) => getProductSlug(p) === slug) ?? null;
+
+        if (!cancelled) {
+          setProduct(found);
+          setLoading(false);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setProduct(null);
+          setLoading(false);
+        }
+      }
     }
 
-    return DEFAULT_PRODUCTS.find((item) => getProductSlug(item) === slug) ?? null;
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
+
+  if (loading) {
+    return (
+      <main style={{ padding: '84px 24px 64px', minHeight: '70vh' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', color: 'var(--text-soft)' }}>Loading product…</div>
+      </main>
+    );
+  }
 
   if (!product) {
     return (
@@ -404,3 +472,4 @@ export default function ProductDetailPage() {
 
   return <ProductDetailContent key={product.id} product={product} />;
 }
+

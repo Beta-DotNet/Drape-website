@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { PromoCarouselSkeleton } from "@/components/skeletons";
 
 interface PromotionRecord {
   id: string;
@@ -215,15 +216,7 @@ export default function PromoCarousel() {
   };
 
   if (isLoading) {
-    return (
-      <section aria-label="Current promotions" className="mx-auto w-full px-4 pb-4 pt-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-[28px] border border-white/60 bg-[#f8f1e7] shadow-[0_25px_70px_rgba(15,23,42,0.08)]">
-          <div className="animate-pulse px-5 py-6 sm:px-8 sm:py-8">
-            <div className="h-[280px] rounded-[22px] bg-gradient-to-r from-[#f0e3d1] via-[#f8f1e7] to-[#efe0cf] sm:h-[360px]" />
-          </div>
-        </div>
-      </section>
-    );
+    return <PromoCarouselSkeleton />;
   }
 
   if (!promotions.length) {

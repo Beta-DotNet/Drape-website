@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { DEFAULT_PRODUCTS, Product } from "@/lib/data";
+import { Product } from "@/lib/data";
 
 interface ChatMessage {
   id: string;
@@ -22,6 +22,7 @@ function ChatContent() {
   const searchParams = useSearchParams();
   const productIdParam = searchParams.get("product");
   const orderIdParam = searchParams.get("order");
+
 
   const [product, setProduct] = useState<Product | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -49,20 +50,15 @@ function ChatContent() {
       if (!id) {
         id = crypto.randomUUID();
         localStorage.setItem("drape_guest_user_id", id);
-        setGuestId(id);
       }
+      setGuestId(id);
     }
   }, []);
 
   // Resolve product or order context
   useEffect(() => {
-    if (productIdParam) {
-      const found = DEFAULT_PRODUCTS.find((p) => p.id === parseInt(productIdParam));
-      if (found && product?.id !== found.id) {
-        setProduct(found);
-      }
-    }
-  }, [productIdParam, product]);
+    // product context loading handled elsewhere
+  }, []);
 
   // Load message history from Supabase + Fallback to Mock Chat for rich demo
   useEffect(() => {

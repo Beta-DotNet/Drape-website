@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Product } from "@/lib/data";
 import ProductCard from "./ProductCard";
+import { ProductGridSkeleton } from "./skeletons";
 
 function mapSupabaseProductRow(row: unknown): Product {
   const product = row as Partial<{
@@ -105,7 +106,11 @@ export default function Trending() {
     };
   }, []);
 
-  if (isLoading || products.length === 0) {
+  if (isLoading) {
+    return <ProductGridSkeleton />;
+  }
+
+  if (products.length === 0) {
     return null;
   }
 

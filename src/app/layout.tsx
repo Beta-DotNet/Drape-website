@@ -4,10 +4,12 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ProductModalProvider } from "@/components/ProductModalContext";
 import ToastContainer from "@/components/ToastContainer";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "drape — AI-Powered Fashion Marketplace",
-  description: "Shop fashion with confidence. drape uses AI body scanning to recommend your perfect size across every brand.",
+  description:
+    "Shop fashion with confidence. drape uses AI body scanning to recommend your perfect size across every brand.",
 };
 
 export default function RootLayout({
@@ -19,12 +21,12 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ProductModalProvider>
-          <Header />
-          <div id="app">
-            {children}
-          </div>
-          <Footer />
-          <ToastContainer />
+          <AuthProvider>
+            <Header />
+            <div id="app">{children}</div>
+            <Footer />
+            <ToastContainer />
+          </AuthProvider>
         </ProductModalProvider>
       </body>
     </html>

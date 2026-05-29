@@ -1,10 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { UserProfileSkeleton } from "@/components/skeletons";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("size");
   const [hasProfile, setHasProfile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<{ first_name?: string | null; last_name?: string | null; email?: string | null } | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProfile = async () => {
+      setIsLoading(true);
+
+      try {
+        const { data: userData, error: authError } = await supabase.auth.getUser();
+        if (authError || !userData.user) {
+          setHasProfile(false);
+          return;
+        }
+
+        const userId = userData.user.id;
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("first_name,last_name,email")
+          .eq("id", userId)
+          .single();
+
+        if (profileError || !profileData) {
+          setHasProfile(false);
+          return;
+        }
+
+        if (!isMounted) return;
+
+        setProfile(profileData as { first_name?: string | null; last_name?: string | null; email?: string | null });
+        setHasProfile(true);
+      } catch (error) {
+        console.error("Failed to load profile:", error);
+        setHasProfile(false);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (isLoading) {
+    return <UserProfileSkeleton />;
+  }
 
   return (
     <section id="view-profile" className="view active">

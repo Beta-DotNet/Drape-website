@@ -1,8 +1,8 @@
 "use client";
 
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { DEFAULT_PRODUCTS } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
+
 
 type ProductRow = {
 
@@ -42,53 +42,25 @@ const isSupabaseConfigured =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0 &&
   !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.startsWith("sb_secret_");
 
-function mapDefaultProductToRow(product: (typeof DEFAULT_PRODUCTS)[number]): ProductRow {
-  return {
-    id: product.id,
-    name: product.name,
-    brand: product.brand,
-    category: product.category,
-    gender: product.gender,
-    price: product.price,
-    original_price: product.originalPrice,
-    images: product.images,
-    colors: product.colors,
-    sizes: product.sizes,
-    in_stock: product.inStock,
-    rating: product.rating,
-    reviews: product.reviews,
-    fabric: product.fabric,
-    care: product.care,
-    description: product.description,
-    tags: product.tags,
-  };
-}
 
-function seedLocalProducts(): ProductRow[] {
-  const seeded = DEFAULT_PRODUCTS.map(mapDefaultProductToRow);
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(LOCAL_PRODUCTS_STORAGE_KEY, JSON.stringify(seeded));
-  }
-  return seeded;
-}
 
 function readLocalProducts(): ProductRow[] {
   if (typeof window === "undefined") {
-    return seedLocalProducts();
+    return [];
   }
 
   try {
     const raw = window.localStorage.getItem(LOCAL_PRODUCTS_STORAGE_KEY);
-    if (!raw) return seedLocalProducts();
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
       return parsed as ProductRow[];
     }
   } catch {
-    // ignore and fall back to seeded data
+    // ignore and fall back to empty
   }
 
-  return seedLocalProducts();
+  return [];
 }
 
 function persistLocalProducts(products: ProductRow[]) {
@@ -851,7 +823,7 @@ function AdminProductsContent() {
                 <span className="admin-form-help">{FORM_HELP_TEXT.colorCSV}</span>
               </label>
               <label className="admin-form-field">
-                <span className="admin-form-label">Images</span>
+                <span className="admin-form-label">Images (Product photos)</span>
                 <input
                   value={form.imagesCSV}
                   onChange={(e) => setForm((prev) => ({ ...prev, imagesCSV: e.target.value }))}

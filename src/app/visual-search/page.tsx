@@ -1,6 +1,6 @@
 "use client";
 
-import { VS_PRESETS, DEFAULT_PRODUCTS } from "@/lib/data";
+import { VS_PRESETS } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import { useRef, useState } from "react";
 
@@ -130,9 +130,9 @@ export default function VisualSearchPage() {
               Showing matches for your style
             </div>
             <div className="products-grid" id="vs-results-grid">
-              {DEFAULT_PRODUCTS.slice(0, 4).map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
+              <div style={{ padding: "24px", color: "var(--text-soft)", textAlign: "center" }}>
+                Visual search results will appear here.
+              </div>
             </div>
           </div>
         )}
