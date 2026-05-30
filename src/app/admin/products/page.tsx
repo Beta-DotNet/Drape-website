@@ -2,6 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { AdminPageSkeleton } from "@/components/skeletons";
 
 
 type ProductRow = {
@@ -899,7 +900,7 @@ function AdminProductsContent() {
 
 export default function AdminProductsPage() {
   return (
-    <Suspense fallback={<div style={{ padding: "80px", textAlign: "center" }}>Loading Products…</div>}>
+    <Suspense fallback={<AdminPageSkeleton />}>
       <AdminProductsContent />
     </Suspense>
   );

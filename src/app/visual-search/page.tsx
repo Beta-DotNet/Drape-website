@@ -3,14 +3,20 @@
 import { VS_PRESETS } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import { useRef, useState } from "react";
+import { ProductCardSkeleton } from "@/components/skeletons";
 
 export default function VisualSearchPage() {
   const [results, setResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const showResults = () => setResults(true);
+  const showResults = () => {
+    setIsSearching(true);
+    setResults(true);
+    setTimeout(() => setIsSearching(false), 300);
+  };
 
 
   return (
@@ -124,15 +130,23 @@ export default function VisualSearchPage() {
         </div>
 
 
-        {results && (
+{results && (
           <div id="vs-results-section" aria-live="polite">
             <div className="vs-results-title" id="vs-results-title">
               Showing matches for your style
             </div>
             <div className="products-grid" id="vs-results-grid">
-              <div style={{ padding: "24px", color: "var(--text-soft)", textAlign: "center" }}>
-                Visual search results will appear here.
-              </div>
+              {isSearching ? (
+                <div className="product-grid-loading">
+                  <ProductCardSkeleton />
+                  <ProductCardSkeleton />
+                  <ProductCardSkeleton />
+                </div>
+              ) : (
+                <div style={{ padding: "24px", color: "var(--text-soft)", textAlign: "center" }}>
+                  Visual search results will appear here.
+                </div>
+              )}
             </div>
           </div>
         )}

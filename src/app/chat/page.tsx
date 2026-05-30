@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Product } from "@/lib/data";
+import { ChatPageSkeleton } from "@/components/skeletons";
 
 interface ChatMessage {
   id: string;
@@ -495,7 +496,7 @@ function ChatContent() {
 
 export default function ChatPage() {
   return (
-    <Suspense fallback={<div style={{ padding: "80px", textAlign: "center" }}>Loading Chat…</div>}>
+    <Suspense fallback={<ChatPageSkeleton />}>
       <ChatContent />
     </Suspense>
   );

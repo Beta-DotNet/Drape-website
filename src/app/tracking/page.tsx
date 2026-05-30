@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import type { DriverLocation } from "@/components/DeliveryMap";
 import "@/app/styles/golden-ui.css";
+import { AdminPageSkeleton } from "@/components/skeletons";
 
 // Dynamically import the map — Leaflet requires browser APIs, must not SSR
 const DeliveryMap = dynamic(() => import("@/components/DeliveryMap"), {
@@ -474,13 +475,7 @@ function TrackingContent() {
 
 export default function TrackingPage() {
   return (
-    <Suspense
-      fallback={
-        <div style={{ padding: "80px", textAlign: "center", color: "var(--text-soft)" }}>
-          Loading tracking…
-        </div>
-      }
-    >
+    <Suspense fallback={<AdminPageSkeleton />}>
       <TrackingContent />
     </Suspense>
   );

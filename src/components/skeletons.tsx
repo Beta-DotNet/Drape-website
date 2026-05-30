@@ -127,3 +127,159 @@ export function UserProfileSkeleton() {
     </section>
   );
 }
+
+export function ShopPageSkeleton() {
+  return (
+    <section className="view active animate-pulse">
+      <div className="shop-layout">
+        <aside className="filter-sidebar">
+          <div className="h-6 w-24 rounded bg-gray-200 mb-4" />
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-gray-200" />
+                <div className="h-4 w-16 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+          <div className="h-6 w-16 rounded bg-gray-200 mt-6 mb-3" />
+          <div className="space-y-3">
+            {["Men", "Women", "Kids"].map((g) => (
+              <div key={g} className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-gray-200" />
+                <div className="h-4 w-16 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+          <div className="h-6 w-20 rounded bg-gray-200 mt-6 mb-3" />
+          <div className="h-2 w-full rounded-full bg-gray-200" />
+        </aside>
+        <div className="shop-main">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function ChatPageSkeleton() {
+  return (
+    <div className="gui-chat-shell animate-pulse" style={{ minHeight: "70vh" }}>
+      <div className="rounded-[28px] bg-neutral-100 p-6 space-y-4">
+        <div className="h-5 w-32 rounded bg-gray-200" />
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex gap-3" style={{ maxWidth: "70%" }}>
+              <div className="h-12 flex-1 rounded-2xl bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function LoginPageSkeleton() {
+  return (
+    <section className="view active auth-page-shell animate-pulse">
+      <div className="auth-page-grid">
+        <div className="auth-hero-panel">
+          <div className="space-y-3">
+            <div className="h-4 w-24 rounded bg-gray-200" />
+            <div className="h-8 w-64 rounded bg-gray-200" />
+            <div className="h-4 w-80 rounded bg-gray-200" />
+          </div>
+          <div className="h-24 rounded-[18px] bg-gray-200 mt-6" />
+        </div>
+        <div className="auth-card">
+          <div className="space-y-4">
+            <div className="h-5 w-48 rounded bg-gray-200" />
+            <div className="h-10 w-full rounded bg-gray-200" />
+            <div className="h-10 w-full rounded bg-gray-200" />
+            <div className="h-10 w-full rounded bg-gray-200" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function SignupPageSkeleton() {
+  return (
+    <section className="view active auth-page-shell animate-pulse">
+      <div className="auth-page-grid auth-page-grid-signup">
+        <div className="auth-hero-panel">
+          <div className="space-y-3">
+            <div className="h-4 w-16 rounded bg-gray-200" />
+            <div className="h-8 w-80 rounded bg-gray-200" />
+            <div className="h-4 w-96 rounded bg-gray-200" />
+          </div>
+        </div>
+        <div className="auth-card">
+          <div className="grid gap-4">
+            <div className="h-10 w-full rounded bg-gray-200" />
+            <div className="h-10 w-full rounded bg-gray-200" />
+            <div className="h-10 w-full rounded bg-gray-200" />
+            <div className="h-10 w-full rounded bg-gray-200" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function AdminPageSkeleton() {
+  return (
+    <div className="admin-products-shell animate-pulse">
+      <div className="admin-products-header">
+        <div className="admin-products-hero-card">
+          <div className="space-y-3">
+            <div className="h-4 w-16 rounded bg-gray-200" />
+            <div className="h-8 w-48 rounded bg-gray-200" />
+          </div>
+        </div>
+      </div>
+      <div className="h-10 w-full rounded bg-gray-200 mt-6" />
+      <div className="space-y-4 mt-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-16 rounded bg-gray-200" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function OrderConfirmationSkeleton() {
+  return (
+    <main className="animate-pulse px-6 py-12 sm:px-8 lg:px-10">
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-full bg-gray-200" />
+          <div className="h-8 w-48 rounded bg-gray-200" />
+        </div>
+        <div className="h-24 rounded-[18px] bg-gray-200" />
+      </div>
+    </main>
+  );
+}
+
+export function DealsSkeleton() {
+  return (
+    <section className="deals-section animate-pulse">
+      <div className="section-heading">
+        <div className="line"></div>
+        <span className="section-label">DEALS</span>
+        <div className="line"></div>
+      </div>
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-48 w-72 rounded-2xl bg-gray-200 flex-shrink-0" />
+        ))}
+      </div>
+    </section>
+  );
+}

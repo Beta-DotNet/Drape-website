@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { DealsSkeleton } from "@/components/skeletons";
 
 type DealRecord = {
   id: string;
@@ -95,7 +96,11 @@ export default function Deals() {
     if (track) track.scrollBy({ left: 300, behavior: "smooth" });
   };
 
-  if (isLoading || deals.length === 0) {
+  if (isLoading) {
+    return <DealsSkeleton />;
+  }
+
+  if (deals.length === 0) {
     return null;
   }
 

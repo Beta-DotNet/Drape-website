@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { DEFAULT_PRODUCTS } from "@/lib/data";
+import { AdminPageSkeleton } from "@/components/skeletons";
 
 interface ChatMessage {
   id: string;
@@ -573,7 +574,7 @@ function AdminChatContent() {
 
 export default function AdminChatPage() {
   return (
-    <Suspense fallback={<div style={{ padding: "80px", textAlign: "center" }}>Loading Admin Inbox…</div>}>
+    <Suspense fallback={<AdminPageSkeleton />}>
       <AdminChatContent />
     </Suspense>
   );

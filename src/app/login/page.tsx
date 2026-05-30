@@ -6,6 +6,7 @@ import { getDisplayUsernameFromUser, setStoredAuthSession } from "@/lib/auth-ses
 import { supabase } from "@/lib/supabase";
 import { syncUserProfile } from "@/lib/profile-sync";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { LoginPageSkeleton } from "@/components/skeletons";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -240,7 +241,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<LoginPageSkeleton />}>
       <LoginContent />
     </Suspense>
   );

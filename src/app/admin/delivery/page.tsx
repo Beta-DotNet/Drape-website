@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, Suspense } from "react";
+import { AdminPageSkeleton } from "@/components/skeletons";
 import { supabase } from "@/lib/supabase";
 
 interface ShippingAddress {
@@ -517,7 +518,7 @@ function RiderDashboardContent() {
 
 export default function RiderDashboardPage() {
   return (
-    <Suspense fallback={<div style={{ padding: "80px", textAlign: "center" }}>Loading Rider Console…</div>}>
+    <Suspense fallback={<AdminPageSkeleton />}>
       <RiderDashboardContent />
     </Suspense>
   );

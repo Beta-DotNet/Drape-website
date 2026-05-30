@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
+import { AdminPageSkeleton } from "@/components/skeletons";
 
 type PromotionRecord = {
   id: string;
@@ -109,6 +110,14 @@ function formatDateLabel(value?: string | null) {
 }
 
 export default function AdminHomeContentPage() {
+  return (
+    <Suspense fallback={<AdminPageSkeleton />}>
+      <AdminHomeContent />
+    </Suspense>
+  );
+}
+
+function AdminHomeContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);

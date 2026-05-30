@@ -6,6 +6,7 @@ import { Product } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/lib/supabase";
 import { translateShonaTerm } from "@/lib/search";
+import { ShopPageSkeleton } from "@/components/skeletons";
 
 function mapSupabaseProductRow(row: unknown): Product {
   const product = row as Partial<{
@@ -406,11 +407,7 @@ function ShopContent() {
 // Wrap in Suspense because useSearchParams() requires it in Next.js App Router
 export default function ShopPage() {
   return (
-    <Suspense fallback={
-      <div style={{ padding: "64px", textAlign: "center", color: "var(--text-soft)" }}>
-        Loading shop…
-      </div>
-    }>
+    <Suspense fallback={<ShopPageSkeleton />}>
       <ShopContent />
     </Suspense>
   );

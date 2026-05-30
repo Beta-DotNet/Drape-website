@@ -9,11 +9,26 @@
 - [ ] Step 7: Strengthen auth dropdown: sync with Supabase auth state (`onAuthStateChange`), ensure username fallback works, ARIA + outside click/escape
 - [ ] Step 8: Remove any standalone “Profile” link from navbar entirely (keep only dropdown)
 - [ ] Step 9: Verify manually:
-
   - [ ] GET promotions returns 200 (empty array ok)
   - [ ] POST admin promotion inserts correctly
   - [ ] Homepage carousel loads or fallback shows
   - [ ] Login shows “Hi {username}”, dropdown works, Logout clears session and reverts
   - [ ] Admin submission appears in carousel after refresh
 - [ ] Step 10: Run `npm run lint` and `npm run build`
+
+# WhatsApp Checkout MVP
+- [ ] Step W1: Add SQL migration for vendors + products.vendor_id + orders fields needed for WhatsApp (no vendor phone in frontend)
+- [ ] Step W2: Add `src/lib/whatsapp.ts` helper to sanitize vendor phone and build wa.me URL
+- [ ] Step W3: Add `src/app/api/orders/route.ts` (rate-limited) to:
+  - [ ] validate cart payload
+  - [ ] fetch product->vendor_id
+  - [ ] reject multi-vendor with “Your cart contains items from different boutiques. Please place separate orders.”
+  - [ ] create order server-side and return order-confirmation redirect url (no WhatsApp number exposed)
+- [ ] Step W4: Add `src/app/order-confirmation/page.tsx` to show message + auto-redirect with fallback link
+- [ ] Step W5: Update `src/components/CheckoutModal.tsx` UI:
+  - [ ] WhatsApp payment option card (green styling)
+  - [ ] hide/disable WhatsApp when vendor_id/whatsapp missing (via server eligibility error)
+  - [ ] loading spinner on “Place Order” button while creating order
+  - [ ] handle multi-vendor error
+- [ ] Step W6: Run `npm run lint` and `npm run build`
 

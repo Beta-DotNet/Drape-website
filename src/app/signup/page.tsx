@@ -6,6 +6,7 @@ import { getDisplayUsernameFromUser, setStoredAuthSession } from "@/lib/auth-ses
 import { supabase } from "@/lib/supabase";
 import { syncUserProfile } from "@/lib/profile-sync";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { SignupPageSkeleton } from "@/components/skeletons";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
