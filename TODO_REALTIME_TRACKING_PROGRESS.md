@@ -4,13 +4,13 @@
 - [x] Add golden-ratio-inspired utility classes / tokens (spacing + type scale)
 
 - [x] Refactor Tracking page inline styles -> shared classes
-- [ ] Refactor Admin Delivery page inline styles -> shared classes
+- [x] Refactor Admin Delivery page inline styles -> shared classes
 - [x] Refactor Chat page inline styles -> shared classes + consistent states
 
 
-- [ ] Add/adjust loading + empty + error microcopy where missing
+- [x] Add/adjust loading + empty + error microcopy where missing
 
-- [ ] Verify responsive layout for key pages (mobile/tablet/desktop)
+- [x] Verify responsive layout for key pages (mobile/tablet/desktop)
 
 ## Stage 2 (Real-time Backend Logic)
 - [ ] Audit Supabase realtime data flows and subscriptions

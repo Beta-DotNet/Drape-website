@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import Image from "next/image";
 import { PromoCarouselSkeleton } from "@/components/skeletons";
 
 interface PromotionRecord {
@@ -105,21 +106,38 @@ export default function PromoCarousel() {
     const loadPromotions = async () => {
       setIsLoading(true);
 
+      const fallbackSlide: PromotionRecord = {
+        id: "fallback-promo",
+        title: "Discover Premium Collections",
+        description: "Explore our latest arrivals and timeless pieces crafted for elegance.",
+        image_url: null,
+        link_url: "/shop",
+        cta_text: "Shop Now",
+        priority: 1,
+      };
+
       try {
-        const { data, error } = await supabase
-          .from("promotions")
-          .select("*")
-          .eq("is_active", true)
-          .order("priority", { ascending: true });
+        const [promosRes, dealsRes] = await Promise.all([
+          supabase.from("promotions").select("*").eq("is_active", true),
+          supabase.from("home_deals").select("*").eq("is_active", true)
+        ]);
 
-        if (error) {
-          throw error;
-        }
+        if (promosRes.error) console.warn("Error fetching promotions:", promosRes.error);
+        if (dealsRes.error) console.warn("Error fetching home_deals:", dealsRes.error);
 
-        const activePromotions = (data ?? [])
+        const combined = [
+          ...(promosRes.data ?? []),
+          ...(dealsRes.data ?? [])
+        ];
+
+        let activePromotions = combined
           .filter((item: PromotionRecord | null) => Boolean(item))
           .filter((item: PromotionRecord) => isWithinWindow(item.start_date, item.end_date))
           .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
+
+        if (activePromotions.length === 0) {
+          activePromotions = [fallbackSlide];
+        }
 
         if (isMounted) {
           console.log("[PromoCarousel] activePromotions loaded:",
@@ -131,7 +149,7 @@ export default function PromoCarousel() {
       } catch (error) {
         console.warn("Could not load promotions from Supabase.", error);
         if (isMounted) {
-          setPromotions([]);
+          setPromotions([fallbackSlide]);
         }
       } finally {
         if (isMounted) {
@@ -224,9 +242,9 @@ export default function PromoCarousel() {
   }
 
   return (
-    <section aria-label="Current promotions" className="mx-auto w-full px-4 pb-4 pt-4 sm:px-6 lg:px-8">
+    <section aria-label="Current promotions" className="promo-carousel mx-auto w-full max-w-full px-4 pb-4 pt-4 sm:px-6 lg:px-8">
       <div
-        className="relative overflow-hidden rounded-[28px] border border-white/60 bg-[#f8f1e7] shadow-[0_25px_70px_rgba(15,23,42,0.08)]"
+        className="promo-carousel-inner relative overflow-hidden rounded-[28px] border border-white/60 bg-[#f8f1e7] shadow-[0_25px_70px_rgba(15,23,42,0.08)] w-full max-w-full"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
@@ -243,12 +261,13 @@ export default function PromoCarousel() {
             }}
           >
             {activePromotion.image_url ? (
-              <img
+              <Image
                 src={activePromotion.image_url}
                 alt={activePromotion.title}
-                loading="eager"
-                fetchPriority="high"
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+                fill
+                sizes="100vw"
+                priority
+                style={{ objectFit: "cover", objectPosition: "center" }}
               />
             ) : (
               <div
@@ -298,7 +317,9 @@ export default function PromoCarousel() {
                   borderRadius: "24px",
                   border: `1px solid ${panelBorder}`,
                   background: textPanelBackground,
-                  padding: "1rem",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  padding: "1.25rem",
                   boxShadow: panelShadow,
 
                 }}
@@ -335,12 +356,13 @@ export default function PromoCarousel() {
                       event.stopPropagation();
                       handleSlideClick(activePromotion.link_url);
                     }}
-                    className="inline-flex w-full items-center justify-center transition duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f9d343] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdf8] sm:w-auto"
+                    className="inline-flex w-full max-w-full items-center justify-center gap-2 rounded-full transition duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f9d343] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffdf8] sm:w-auto"
                     style={{
+                      minHeight: "44px",
                       borderRadius: "var(--r-pill)",
                       background: "linear-gradient(135deg, #f7d463 0%, #f4b61f 100%)",
                       border: "2px solid rgba(15,23,42,0.95)",
-                      padding: "9px 22px",
+                      padding: "12px 22px",
                       fontFamily: "var(--font-h)",
                       fontSize: "14px",
                       fontWeight: 700,

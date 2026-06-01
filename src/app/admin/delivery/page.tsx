@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, Suspense } from "react";
+import "@/app/styles/golden-ui.css";
 import { AdminPageSkeleton } from "@/components/skeletons";
 import { supabase } from "@/lib/supabase";
 
@@ -308,13 +309,7 @@ function RiderDashboardContent() {
   };
 
   return (
-    <div style={{
-      maxWidth: "800px",
-      margin: "0 auto",
-      padding: "20px",
-      minHeight: "calc(100vh - var(--header-h))",
-      background: "var(--bg)",
-    }}>
+    <div className="gui-page" style={{ maxWidth: "800px" }}>
       {/* Header Panel */}
       <div style={{
         background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)",
@@ -338,13 +333,7 @@ function RiderDashboardContent() {
 
       <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: "20px", alignItems: "start" }}>
         {/* Sidebar lists */}
-        <div style={{
-          background: "var(--white)",
-          borderRadius: "16px",
-          border: "1px solid var(--border)",
-          boxShadow: "var(--sh-card)",
-          overflow: "hidden",
-        }}>
+        <div className="gui-card" style={{ overflow: "hidden" }}>
           <div style={{ padding: "14px 16px", fontWeight: 700, fontSize: "14px", borderBottom: "1px solid var(--border-mid)", background: "#f8fafc" }}>
             Active Orders
           </div>
@@ -382,13 +371,7 @@ function RiderDashboardContent() {
         {selectedOrderId ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {/* Run management card */}
-            <div style={{
-              background: "var(--white)",
-              borderRadius: "16px",
-              border: "1px solid var(--border)",
-              padding: "20px",
-              boxShadow: "var(--sh-card)",
-            }}>
+            <div className="gui-card gui-card-pad">
               <h2 style={{ fontFamily: "var(--font-h)", fontSize: "1.2rem", fontWeight: 700, marginBottom: "16px" }}>
                 Run Details: {selectedOrderId}
               </h2>
@@ -403,48 +386,32 @@ function RiderDashboardContent() {
               <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                 <button
                   onClick={() => handleUpdateStatus("Preparing")}
-                  style={{
-                    flex: 1, padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-mid)",
-                    background: deliveryStatus === "Preparing" ? "var(--navy)" : "#fff",
-                    color: deliveryStatus === "Preparing" ? "#fff" : "var(--text)",
-                    fontWeight: 700, cursor: "pointer", fontSize: "12px",
-                  }}
+                  className={deliveryStatus === "Preparing" ? "gui-btn-primary" : "gui-btn-soft"}
+                  style={{ flex: 1 }}
                 >
                   📦 Preparing
                 </button>
 
                 <button
                   onClick={() => handleUpdateStatus("Ready for Pickup")}
-                  style={{
-                    flex: 1, padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-mid)",
-                    background: deliveryStatus === "Ready for Pickup" ? "var(--navy)" : "#fff",
-                    color: deliveryStatus === "Ready for Pickup" ? "#fff" : "var(--text)",
-                    fontWeight: 700, cursor: "pointer", fontSize: "12px",
-                  }}
+                  className={deliveryStatus === "Ready for Pickup" ? "gui-btn-primary" : "gui-btn-soft"}
+                  style={{ flex: 1 }}
                 >
                   🚪 Ready for Pickup
                 </button>
 
                 <button
                   onClick={() => handleUpdateStatus("In Transit")}
-                  style={{
-                    flex: 1, padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-mid)",
-                    background: deliveryStatus === "In Transit" ? "#f59e0b" : "#fff",
-                    color: deliveryStatus === "In Transit" ? "#fff" : "var(--text)",
-                    fontWeight: 700, cursor: "pointer", fontSize: "12px",
-                  }}
+                  className={deliveryStatus === "In Transit" ? "gui-btn-primary" : "gui-btn-soft"}
+                  style={{ flex: 1, background: deliveryStatus === "In Transit" ? "#f59e0b" : undefined, borderColor: deliveryStatus === "In Transit" ? "#f59e0b" : undefined }}
                 >
                   🛵 Go In Transit (GPS On)
                 </button>
 
                 <button
                   onClick={() => handleUpdateStatus("Delivered")}
-                  style={{
-                    flex: 1, padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-mid)",
-                    background: deliveryStatus === "Delivered" ? "#10b981" : "#fff",
-                    color: deliveryStatus === "Delivered" ? "#fff" : "var(--text)",
-                    fontWeight: 700, cursor: "pointer", fontSize: "12px",
-                  }}
+                  className={deliveryStatus === "Delivered" ? "gui-btn-primary" : "gui-btn-soft"}
+                  style={{ flex: 1, background: deliveryStatus === "Delivered" ? "#10b981" : undefined, borderColor: deliveryStatus === "Delivered" ? "#10b981" : undefined }}
                 >
                   🏠 Delivered (Finish)
                 </button>
@@ -453,13 +420,7 @@ function RiderDashboardContent() {
 
             {/* GPS Broadcast Console Card */}
             {deliveryStatus === "In Transit" && (
-              <div style={{
-                background: "var(--white)",
-                borderRadius: "16px",
-                border: "1px solid var(--border)",
-                padding: "20px",
-                boxShadow: "var(--sh-card)",
-              }}>
+              <div className="gui-card gui-card-pad">
                 <div style={{ display: "flex", justifySelf: "space-between", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
                   <h3 style={{ fontFamily: "var(--font-h)", fontWeight: 700, fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
                     🛰️ Live GPS Streaming

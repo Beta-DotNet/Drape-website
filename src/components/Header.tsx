@@ -94,24 +94,29 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const syncAuthState = () => {
-      const session = getStoredAuthSession();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsLoggedIn(Boolean(session));
-      setAuthLabel(session?.username ? `Hi ${session.username}` : "Login");
-      setAuthEmail(session?.email);
-      if (!session) {
+      if (session) {
+        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.username || session.user.email?.split('@')[0] || "User";
+        setAuthLabel(`Hi ${name}`);
+        setAuthEmail(session.user.email);
+      } else {
+        setAuthLabel("Login");
+        setAuthEmail(undefined);
         setIsAuthMenuOpen(false);
       }
-    };
+    });
 
-    syncAuthState();
-    window.addEventListener("storage", syncAuthState);
-    window.addEventListener("drape_auth_session_changed", syncAuthState as EventListener);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(Boolean(session));
+      if (session) {
+        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.username || session.user.email?.split('@')[0] || "User";
+        setAuthLabel(`Hi ${name}`);
+        setAuthEmail(session.user.email);
+      }
+    });
 
-    return () => {
-      window.removeEventListener("storage", syncAuthState);
-      window.removeEventListener("drape_auth_session_changed", syncAuthState as EventListener);
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
