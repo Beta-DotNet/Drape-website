@@ -4,7 +4,7 @@ export function PromoCarouselSkeleton() {
   return (
     <section aria-label="Promotions loading" className="mx-auto w-full px-4 pb-4 pt-4 sm:px-6 lg:px-8">
       <div className="overflow-hidden rounded-[28px] bg-neutral-200 p-6 sm:p-8 animate-pulse">
-        <div className="h-64 md:h-96 rounded-[22px] bg-gray-200" />
+        <div className="aspect-video md:aspect-[21/9] rounded-[22px] bg-gray-200" style={{ minHeight: '200px', maxHeight: '674px' }} />
         <div className="mt-6 space-y-4 max-w-3xl">
           <div className="h-6 w-3/5 rounded-xl bg-gray-200" />
           <div className="h-4 w-4/5 rounded-xl bg-gray-200" />
@@ -39,8 +39,8 @@ export function ProductGridSkeleton() {
         <span className="section-label">Trending</span>
         <div className="line"></div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, index) => (
           <ProductCardSkeleton key={index} />
         ))}
       </div>
@@ -53,7 +53,7 @@ export function ProductDetailPageSkeleton() {
     <main className="animate-pulse px-6 py-12 sm:px-8 lg:px-12">
       <div className="mx-auto grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-4">
-          <div className="h-[420px] rounded-[28px] bg-gray-200" />
+          <div className="aspect-square lg:h-[420px] rounded-[28px] bg-gray-200" />
           <div className="flex gap-3 overflow-x-auto">
             {Array.from({ length: 4 }).map((_, index) => (
               <div key={index} className="h-20 w-24 rounded-[18px] bg-gray-200" />
@@ -132,30 +132,11 @@ export function ShopPageSkeleton() {
   return (
     <section className="view active animate-pulse">
       <div className="shop-layout">
-        <aside className="filter-sidebar">
-          <div className="h-6 w-24 rounded bg-gray-200 mb-4" />
-          <div className="space-y-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-gray-200" />
-                <div className="h-4 w-16 rounded bg-gray-200" />
-              </div>
-            ))}
-          </div>
-          <div className="h-6 w-16 rounded bg-gray-200 mt-6 mb-3" />
-          <div className="space-y-3">
-            {["Men", "Women", "Kids"].map((g) => (
-              <div key={g} className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-gray-200" />
-                <div className="h-4 w-16 rounded bg-gray-200" />
-              </div>
-            ))}
-          </div>
-          <div className="h-6 w-20 rounded bg-gray-200 mt-6 mb-3" />
-          <div className="h-2 w-full rounded-full bg-gray-200" />
+        <aside className="filter-sidebar" aria-hidden="true" style={{ display: 'none' }}>
+          {/* Filter skeleton hidden on mobile */}
         </aside>
         <div className="shop-main">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="products-grid">
             {Array.from({ length: 8 }).map((_, index) => (
               <ProductCardSkeleton key={index} />
             ))}

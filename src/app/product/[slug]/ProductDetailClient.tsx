@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ReviewSystem from '@/components/ReviewSystem';
+import MobileBottomCTA from '@/components/MobileBottomCTA';
 import { showToast } from '@/lib/toast';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/lib/data';
@@ -100,7 +101,7 @@ export default function ProductDetailClient({ product }: { product: Product }) {
   const [selectedImage, setSelectedImage] = useState(product.images[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0] || '');
   const [selectedColor, setSelectedColor] = useState(product.colors[0] || '');
-  const [sizeProfile] = useState<SizeProfile | null>(() => loadStoredSizeProfile());
+  const [sizeProfile, setSizeProfile] = useState<SizeProfile | null>(() => loadStoredSizeProfile());
   const [isAdding, setIsAdding] = useState(false);
 
   const recommendedSize = determineRecommendedSize(sizeProfile, product);
@@ -168,125 +169,139 @@ export default function ProductDetailClient({ product }: { product: Product }) {
     }
   };
 
+  const triggerMockScan = () => {
+    const mockProfile = {
+      hasScanned: true,
+      measurements: {
+        height: 180,
+        weight: 75,
+        chest: 98,
+        waist: 82,
+        hips: 100,
+        inseam: 80,
+        shoeSize: "9",
+      },
+      brandSizes: {
+        Nike: { Tops: "L", Bottoms: "M", Shoes: "10" },
+        Zara: { Tops: "M", Bottoms: "M", Shoes: "9.5" },
+        "Retro Supply": { Tops: "L", Bottoms: "L", Shoes: "10" },
+        "Jonathan D": { Tops: "L", Bottoms: "32", Shoes: "9" },
+      },
+    };
+
+    localStorage.setItem("drape_size_profile", JSON.stringify(mockProfile));
+    setSizeProfile(mockProfile);
+    alert("AI scan successful! Your size recommendations are now active across all products.");
+    window.dispatchEvent(new Event("drape_auth_session_changed"));
+  };
+
   return (
-    <main style={{ padding: '84px 24px 64px' }}>
-      <div style={{ maxWidth: 1120, margin: '0 auto' }}>
+    <main className="product-detail-page min-h-screen px-4 pb-24 pt-20 sm:px-6 lg:px-8 lg:pt-24">
+      <div className="mx-auto max-w-6xl">
         <Link
           href="/shop"
-          style={{ color: 'var(--navy)', fontWeight: 700, display: 'inline-flex', marginBottom: 24 }}
+          className="inline-flex items-center gap-2 text-sm font-bold text-[#1a3a52] transition hover:text-[#f9d343] mb-6"
         >
           ← Back to shop
         </Link>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1.1fr) minmax(320px, 1fr)', gap: 28 }}>
-          <div style={{ background: 'var(--surface, #f8fafc)', borderRadius: 24, padding: 16 }}>
-            <Image
-              src={selectedImage}
-              alt={product.name}
-              width={720}
-              height={840}
-              unoptimized
-              style={{ width: '100%', height: 'auto', borderRadius: 18, objectFit: 'cover' }}
-            />
-            <div style={{ display: 'flex', gap: 12, marginTop: 14, overflowX: 'auto' }}>
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+          {/* Gallery Column */}
+          <div className="bg-[#eef0f7] rounded-3xl p-4 h-fit">
+            <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-white">
+              <Image
+                src={selectedImage}
+                alt={product.name}
+                fill
+                priority
+                unoptimized
+                className="object-cover"
+              />
+            </div>
+            {/* Thumbnails list */}
+            <div className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
               {product.images.map((image) => (
                 <button
                   key={image}
                   type="button"
                   onClick={() => setSelectedImage(image)}
-                  style={{
-                    border: selectedImage === image ? '2px solid var(--navy)' : '2px solid transparent',
-                    borderRadius: 14,
-                    overflow: 'hidden',
-                    padding: 0,
-                    background: 'transparent',
-                    cursor: 'pointer',
-                  }}
+                  className={`relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-xl border-2 transition ${
+                    selectedImage === image ? 'border-[#1a3a52]' : 'border-transparent'
+                  }`}
                 >
-                  <Image src={image} alt={product.name} width={88} height={104} unoptimized style={{ display: 'block' }} />
+                  <Image
+                    src={image}
+                    alt={product.name}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
                 </button>
               ))}
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {/* Details Column */}
+          <div className="flex flex-col gap-6">
             <div>
-              <p style={{ textTransform: 'uppercase', letterSpacing: 1.2, color: 'var(--text-soft)', fontSize: 12, fontWeight: 800 }}>
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#64748b]">
                 {product.brand}
               </p>
-              <h1 style={{ fontFamily: 'var(--font-h, Arial)', fontSize: 32, margin: '6px 0 8px' }}>{product.name}</h1>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-                <span style={{ fontFamily: 'var(--font-h, Arial)', fontSize: 30, fontWeight: 800, color: 'var(--navy)' }}>
+              <h1 className="font-h text-3xl sm:text-4xl text-[#0f172a] tracking-tight mt-1.5 mb-3">{product.name}</h1>
+              
+              <div className="flex items-baseline gap-3">
+                <span className="font-h text-3xl font-extrabold text-[#1a3a52]">
                   ${product.price}
                 </span>
                 {product.originalPrice ? (
-                  <span style={{ color: 'var(--text-soft)', textDecoration: 'line-through' }}>
+                  <span className="text-base text-[#64748b] line-through">
                     ${product.originalPrice}
                   </span>
                 ) : null}
               </div>
-              <p style={{ marginTop: 14, color: 'var(--text-mid)', lineHeight: 1.7 }}>{product.description}</p>
+              <p className="mt-4 text-[#334155] leading-relaxed text-sm sm:text-base">{product.description}</p>
             </div>
 
             {sizeProfile && recommendedSize ? (
-              <div
-                style={{
-                  padding: 16,
-                  borderRadius: 18,
-                  background: 'linear-gradient(135deg, #10243f 0%, #1a3a52 100%)',
-                  color: '#fff',
-                  display: 'flex',
-                  gap: 12,
-                  alignItems: 'center',
-                }}
-              >
-                <div style={{ fontSize: 28 }}>✨</div>
+              <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-[#10243f] to-[#1a3a52] p-4 text-white shadow-md border border-[#f9d343]/20">
+                <div className="text-3xl">✨</div>
                 <div>
-                  <div style={{ textTransform: 'uppercase', letterSpacing: 1.2, fontSize: 11, opacity: 0.8 }}>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#f9d343]">
                     AI size recommendation
                   </div>
-                  <div style={{ fontFamily: 'var(--font-h, Arial)', fontSize: 24, fontWeight: 800 }}>Size {recommendedSize}</div>
+                  <div className="font-h text-2xl font-bold tracking-tight">Size {recommendedSize}</div>
                 </div>
               </div>
             ) : (
               <div
-                style={{
-                  padding: 16,
-                  borderRadius: 18,
-                  border: '1px dashed rgba(249, 211, 67, 0.55)',
-                  background: 'rgba(249, 211, 67, 0.08)',
-                }}
+                onClick={triggerMockScan}
+                className="cursor-pointer rounded-2xl border-2 border-dashed border-[#f9d343]/40 bg-[#f9d343]/5 p-5 transition hover:bg-[#f9d343]/10"
               >
-                <div style={{ fontFamily: 'var(--font-h, Arial)', fontSize: 20, fontWeight: 800, color: 'var(--navy)' }}>
-                  Find your size with AI Body Scan
+                <div className="font-h text-lg font-bold text-[#1a3a52] flex items-center gap-2">
+                  <span>🤖</span> Find your size with AI Body Scan
                 </div>
-                <p style={{ marginTop: 8, color: 'var(--text-mid)', lineHeight: 1.6 }}>
+                <p className="mt-2 text-sm text-[#334155] leading-relaxed">
                   Save a size profile to unlock accurate fit recommendations across every brand.
                 </p>
               </div>
             )}
 
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                <strong>Select size</strong>
-                <span style={{ color: 'var(--navy)', fontSize: 13 }}>Fit-guided by your measurements</span>
+              <div className="flex items-center justify-between mb-3">
+                <strong className="text-[#0f172a]">Select Size</strong>
+                <span className="text-xs text-[#64748b]">Fit-guided by your measurements</span>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              <div className="flex flex-wrap gap-2.5">
                 {product.sizes.map((size) => (
                   <button
                     key={size}
                     type="button"
                     onClick={() => setSelectedSize(size)}
-                    style={{
-                      minWidth: 48,
-                      minHeight: 48,
-                      borderRadius: 12,
-                      border: selectedSize === size ? '2px solid var(--navy)' : '1.5px solid var(--border-mid)',
-                      background: selectedSize === size ? 'var(--navy)' : '#fff',
-                      color: selectedSize === size ? '#fff' : 'var(--navy)',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                    }}
+                    className={`flex h-12 min-w-[48px] items-center justify-center rounded-xl border-2 font-bold transition ${
+                      selectedSize === size
+                        ? 'border-[#1a3a52] bg-[#1a3a52] text-white'
+                        : 'border-[#0f172a]/10 bg-white text-[#1a3a52] hover:border-[#1a3a52]/40'
+                    }`}
                   >
                     {size}
                   </button>
@@ -295,24 +310,20 @@ export default function ProductDetailClient({ product }: { product: Product }) {
             </div>
 
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                <strong>Colour</strong>
+              <div className="mb-3">
+                <strong className="text-[#0f172a]">Colour</strong>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              <div className="flex flex-wrap gap-2.5">
                 {product.colors.map((color) => (
                   <button
                     key={color}
                     type="button"
                     onClick={() => setSelectedColor(color)}
-                    style={{
-                      borderRadius: 999,
-                      border: selectedColor === color ? '2px solid var(--navy)' : '1.5px solid var(--border-mid)',
-                      background: selectedColor === color ? 'var(--navy)' : '#fff',
-                      color: selectedColor === color ? '#fff' : 'var(--navy)',
-                      padding: '10px 16px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
+                    className={`rounded-full border-2 px-5 py-2.5 text-sm font-semibold transition ${
+                      selectedColor === color
+                        ? 'border-[#1a3a52] bg-[#1a3a52] text-white'
+                        : 'border-[#0f172a]/10 bg-white text-[#1a3a52] hover:border-[#1a3a52]/40'
+                    }`}
                   >
                     {color}
                   </button>
@@ -320,61 +331,52 @@ export default function ProductDetailClient({ product }: { product: Product }) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div className="flex gap-3 flex-wrap mt-4">
               <button
                 type="button"
                 onClick={handleAddToBag}
                 disabled={isAdding}
-                style={{
-                  flex: 1,
-                  minWidth: 220,
-                  border: 'none',
-                  borderRadius: 999,
-                  background: 'var(--navy)',
-                  color: '#fff',
-                  padding: '14px 18px',
-                  fontWeight: 800,
-                  cursor: isAdding ? 'wait' : 'pointer',
-                }}
+                className="flex-1 min-w-[220px] rounded-full bg-[#1a3a52] text-white py-3.5 px-6 font-bold hover:bg-[#122a3e] active:scale-[0.98] transition disabled:opacity-50"
               >
                 {isAdding ? 'Adding…' : `Add to Bag — $${product.price.toFixed(2)}`}
               </button>
               <button
                 type="button"
                 onClick={() => router.push('/shop')}
-                style={{
-                  border: '1.5px solid var(--border-mid)',
-                  borderRadius: 999,
-                  background: '#fff',
-                  color: 'var(--navy)',
-                  padding: '14px 18px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                }}
+                className="rounded-full border border-[#0f172a]/20 bg-white text-[#1a3a52] py-3.5 px-6 font-bold hover:bg-slate-50 transition"
               >
                 Browse more
               </button>
             </div>
 
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
-              <div style={{ padding: 14, borderRadius: 16, background: 'var(--surface, #f8fafc)' }}>
-                <div style={{ fontSize: 12, textTransform: 'uppercase', opacity: 0.7 }}>Fabric</div>
-                <div style={{ marginTop: 6, fontWeight: 700 }}>{product.fabric}</div>
+            <div className="border-t border-[#0f172a]/10 pt-4 grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-2xl bg-[#eef0f7]/60">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">Fabric</div>
+                <div className="mt-1.5 font-bold text-[#0f172a]">{product.fabric}</div>
               </div>
-              <div style={{ padding: 14, borderRadius: 16, background: 'var(--surface, #f8fafc)' }}>
-                <div style={{ fontSize: 12, textTransform: 'uppercase', opacity: 0.7 }}>Care</div>
-                <div style={{ marginTop: 6, fontWeight: 700 }}>{product.care}</div>
+              <div className="p-4 rounded-2xl bg-[#eef0f7]/60">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">Care</div>
+                <div className="mt-1.5 font-bold text-[#0f172a]">{product.care}</div>
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-              <h2 style={{ fontFamily: 'var(--font-h, Arial)', fontSize: 24, marginBottom: 12 }}>Reviews</h2>
+            <div className="border-t border-[#0f172a]/10 pt-4">
+              <h2 className="font-h text-2xl text-[#0f172a] mb-4">Reviews</h2>
               <ReviewSystem key={product.id} product={product} initialAverage={product.rating} initialCount={product.reviews} />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Sticky Mobile bottom CTA */}
+      <MobileBottomCTA
+        productName={product.name}
+        price={product.price}
+        onAddToCart={handleAddToBag}
+        onFindSize={triggerMockScan}
+        isAdding={isAdding}
+        selectedSize={selectedSize}
+      />
     </main>
   );
 }
-

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import CartDrawer from "./CartDrawer";
+import MobileMenu from "./MobileMenu";
 import { useProductModal } from "./ProductModalContext";
 import { clearStoredAuthSession, getStoredAuthSession } from "@/lib/auth-session";
 import { getSearchSuggestions, SearchSuggestions } from "@/lib/search";
@@ -16,6 +17,19 @@ export default function Header() {
   const authMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { openProductModal } = useProductModal();
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
 
   const profileMenuItems = [
     {
@@ -210,12 +224,26 @@ export default function Header() {
   const authAvatarInitial = authMenuUsername.charAt(0).toUpperCase() || "U";
 
   return (
-    <header className="site-header" id="site-header">
-      <div className="header-logo" style={{ cursor: "pointer" }}>
-        <Link href="/">
-          <Image src="/images/Drape Logo.svg" alt="drape" width={120} height={40} />
-        </Link>
-      </div>
+    <>
+      <header className="site-header" id="site-header">
+        <div className="header-logo" style={{ cursor: "pointer" }}>
+          <Link href="/">
+            <Image src="/images/Drape Logo.svg" alt="drape" width={120} height={40} />
+          </Link>
+        </div>
+
+        {/* Hamburger button — mobile only */}
+        <button
+          className="hamburger-btn"
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open navigation menu"
+          aria-expanded={isMobileMenuOpen}
+          id="hamburger-btn"
+        >
+          <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path d="M3 12h18M3 6h18M3 18h18" />
+          </svg>
+        </button>
 
       <div className="header-nav-wrap">
         <div
@@ -422,5 +450,15 @@ export default function Header() {
       </div>
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
+    <MobileMenu
+      isOpen={isMobileMenuOpen}
+      onClose={() => setIsMobileMenuOpen(false)}
+      isLoggedIn={isLoggedIn}
+      authLabel={authLabel}
+      cartCount={cartCount}
+      onCartOpen={() => setIsCartOpen(true)}
+      onAuthClick={handleAuthButtonClick}
+    />
+    </>
   );
 }

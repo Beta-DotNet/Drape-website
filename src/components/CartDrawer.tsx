@@ -90,22 +90,23 @@ export default function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClo
               <div
                 key={item.product_id}
                 className="cart-item"
-                style={{ display: "flex", gap: "12px", marginBottom: "16px" }}
               >
                 <img
                   src={item.image}
                   alt={item.name}
-                  style={{ width: "60px", height: "80px", objectFit: "cover", borderRadius: "var(--r-sm)" }}
+                  className="cart-item-img"
+                  style={{ objectFit: "cover", borderRadius: "var(--r-sm)", width: "72px", height: "88px", flexShrink: 0 }}
                 />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600 }}>{item.name}</div>
-                  <div style={{ color: "var(--text-soft)", fontSize: "14px" }}>
-                    Qty: {item.quantity}
+                <div className="cart-item-info" style={{ flex: 1, minWidth: 0 }}>
+                  <div className="cart-item-brand">{item.brand}</div>
+                  <div className="cart-item-name" style={{ fontFamily: "var(--font-h)", fontWeight: 600, fontSize: "15px", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                  <div className="cart-item-meta" style={{ fontSize: "12px", color: "var(--text-soft)" }}>
+                    {item.size} • {item.color}
                   </div>
-                  <div style={{ color: "var(--text-soft)", fontSize: "12px", marginTop: "4px" }}>
-                    {item.brand} • {item.size} • {item.color}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "8px" }}>
+                    <span style={{ fontFamily: "var(--font-h)", fontWeight: 700, color: "var(--navy)", fontSize: "1.1rem" }}>${(item.price * item.quantity).toFixed(2)}</span>
+                    <span style={{ fontSize: "13px", color: "var(--text-soft)" }}>Qty: {item.quantity}</span>
                   </div>
-                  <div style={{ fontWeight: 600, marginTop: "6px" }}>${item.price}</div>
                 </div>
               </div>
             ))

@@ -201,7 +201,7 @@ export default function CheckoutModal({
                   Payment Method
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
                   <label
                     style={{
                       border: "1px solid var(--border-mid)",

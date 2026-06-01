@@ -80,6 +80,19 @@ function ShopContent() {
   const [isShona, setIsShona]       = useState(false);
   const [shonaTerm, setShonaTerm]   = useState<string | null>(null);
 
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  useEffect(() => {
+    if (isFilterOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isFilterOpen]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -187,8 +200,24 @@ function ShopContent() {
   return (
     <section id="view-shop" className="view active">
       <div className="shop-layout">
+        {/* Mobile filter backdrop */}
+        <div
+          className={`filter-sidebar-backdrop${isFilterOpen ? " mobile-open" : ""}`}
+          onClick={() => setIsFilterOpen(false)}
+          aria-hidden="true"
+        />
+
         {/* ── Filter Sidebar ── */}
-        <aside className="filter-sidebar" id="filter-sidebar">
+        <aside className={`filter-sidebar${isFilterOpen ? " mobile-open" : ""}`} id="filter-sidebar">
+          {/* Mobile close button */}
+          <button
+            className="filter-sidebar-close"
+            type="button"
+            onClick={() => setIsFilterOpen(false)}
+            aria-label="Close filters"
+          >
+            ✕
+          </button>
           <div className="filter-sidebar-title">Filters</div>
 
           <div className="filter-section">
@@ -255,6 +284,20 @@ function ShopContent() {
 
         {/* ── Main Grid ── */}
         <div className="shop-main">
+          {/* Mobile filter toggle — hidden on desktop */}
+          <button
+            className="filter-toggle-btn"
+            type="button"
+            onClick={() => setIsFilterOpen(true)}
+            id="filter-toggle-btn"
+            aria-label="Open filters"
+            aria-expanded={isFilterOpen}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M3 6h18M6 12h12M9 18h6" />
+            </svg>
+            Filters
+          </button>
           {/* Shona translation banner */}
           {urlQ && isShona && translatedQuery && (
             <div

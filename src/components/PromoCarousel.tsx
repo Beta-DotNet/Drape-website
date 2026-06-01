@@ -237,7 +237,9 @@ export default function PromoCarousel() {
             style={{
               position: "relative",
               overflow: "hidden",
-              height: "clamp(320px, 900vh, 674px)",
+              aspectRatio: "16/9",
+              minHeight: "220px",
+              maxHeight: "674px",
             }}
           >
             {activePromotion.image_url ? (
@@ -284,10 +286,11 @@ export default function PromoCarousel() {
             <div
               style={{
                 position: "absolute",
-                insetInline: "1rem",
-                bottom: "1rem",
+                insetInline: "clamp(0.5rem, 2vw, 1rem)",
+                bottom: "clamp(0.5rem, 2vw, 1rem)",
                 zIndex: 10,
                 maxWidth: "min(100%, 560px)",
+                width: "calc(100% - clamp(1rem, 4vw, 2rem))",
               }}
             >
               <div
